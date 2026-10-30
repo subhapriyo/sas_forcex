@@ -1,0 +1,93 @@
+/* =============================================================================
+   ForceX Desk theme — re-colours the WHOLE v16 Desk (lists, forms, reports,
+   workspaces) with the FLEETO prototype palette.
+   Loaded on every Desk page via hooks.py → app_include_css (after the Desk's
+   own bundle, so equal-specificity rules here win).
+
+   Strategy: override the Desk's own CSS custom properties. Every standard
+   component reads these, so one change re-colours the whole Desk and survives
+   upgrades. Variable names below were READ FROM the built v16 desk bundle
+   (frappe 16.51.1, sites/assets/frappe/dist/css/desk.bundle.*.css):
+     :root            → --primary, --brand-color, --primary-color, --btn-primary,
+                        --bg-color, --fg-color, --card-bg, --navbar-bg,
+                        --desk-sidebar-bg, --sidebar-select-color, --radius*
+     .es-button       → --bt-solid-bg / -hover / -fg  (v16 "Espresso" buttons)
+     [data-theme=dark]→ dark palette
+   Re-check these names after each major upgrade (README → "Upgrade check").
+   ============================================================================= */
+
+/* ---------- Light ----------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+  --fx-brand-navy: #0F3870;
+  --fx-brand-deep: #0B1C33;
+  --fx-brand-orange: #F26522;
+  --fx-brand-cta: #C2410C;
+  --fx-brand-cta-hover: #9A3412;
+
+  --primary: var(--fx-brand-navy);          /* v16 default #171717 */
+  --brand-color: var(--fx-brand-navy);
+  --primary-color: var(--fx-brand-navy);
+  --btn-primary: var(--fx-brand-cta);       /* primary action = prototype CTA orange */
+  --bg-color: #EEF1F6;                      /* page background (prototype --bg) */
+  --fg-color: #FFFFFF;                      /* forms / cards */
+  --card-bg: #FFFFFF;
+  --navbar-bg: #FFFFFF;
+  --desk-sidebar-bg: #F6F8FB;
+  --sidebar-select-color: #E6EEF9;          /* selected sidebar item (prototype info-bg) */
+  --text-color: #18222F;
+  --heading-color: #0B1C33;
+  --border-color: #DCE2EC;
+}
+
+/* ---------- Dark (attribute confirmed: <html data-theme="dark">) ------------- */
+[data-theme="dark"] {
+  --primary: #8DB3F0;
+  --brand-color: #8DB3F0;
+  --primary-color: #8DB3F0;
+  --btn-primary: #C2410C;
+  --bg-color: #0E1624;
+  --fg-color: #152033;
+  --card-bg: #152033;
+  --navbar-bg: #0B1C33;
+  --desk-sidebar-bg: #0B1C33;
+  --sidebar-select-color: #1F2D45;
+  --text-color: #E6EAF1;
+  --heading-color: #F2F5FA;
+  --border-color: #26344D;
+}
+
+/* ---------- Buttons ---------------------------------------------------------- */
+/* v16 Espresso buttons: solid variant = ForceX CTA. The red (danger) theme keeps
+   its own, more specific .es-button[data-theme=red] rule. */
+.es-button {
+  --bt-solid-bg: #C2410C;
+  --bt-solid-bg-hover: #9A3412;
+  --bt-solid-fg: #FFFFFF;
+}
+/* Classic Bootstrap primary buttons still used by many forms/dialogs */
+.btn.btn-primary,
+.btn.btn-primary:focus { background-color: #C2410C; border-color: #C2410C; color: #fff; }
+.btn.btn-primary:hover,
+.btn.btn-primary:active { background-color: #9A3412; border-color: #9A3412; color: #fff; }
+
+/* Focus ring = prototype orange (visible keyboard focus) */
+.form-control:focus,
+.btn:focus-visible,
+.es-button:focus-visible { box-shadow: 0 0 0 2px rgba(242, 101, 34, .30); }
+
+/* ---------- Navigation -------------------------------------------------------- */
+.navbar { border-bottom: 1px solid var(--border-color); }
+/* Selected sidebar item: orange left marker + tinted background, like the prototype's .nav.on.
+   v16 marks it with .active-sidebar (v15 used .selected — kept for older sites). */
+.standard-sidebar-item.active-sidebar,
+.standard-sidebar-item.selected {
+  background-color: var(--sidebar-select-color);
+  box-shadow: inset 3px 0 0 #F26522;
+  font-weight: 600;
+}
+.standard-sidebar-item.active-sidebar .sidebar-item-label { color: var(--primary); }
+
+/* ---------- Small polish ------------------------------------------------------ */
+.indicator-pill { font-weight: 600; }
+.widget-group-title { letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }

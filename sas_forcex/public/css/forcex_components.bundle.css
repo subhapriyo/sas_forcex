@@ -1,0 +1,266 @@
+/* =============================================================================
+   ForceX components — the shared design system for every ForceX app
+   (originally ported from ForceX_Service_Warranty_Prototype.html).
+   App: sas_forcex · built by `bench build --app sas_forcex`
+   Used by forcex_ui.bundle.js helpers; product apps (e.g. sas_forcex_fleeto)
+   reuse these classes instead of shipping their own copies.
+
+   KNOWN GAP: component rules in section 3 are scoped to .fx-app only, so a
+   forcex.ui helper (pill, gate …) rendered inside a standard form (.fx-form)
+   is unstyled today. Fix when the first form needs one: change the scope
+   `.fx-app` to `:is(.fx-app, .fx-form)` in section 3.
+
+   HOW THIS FILE IS ORGANISED
+     1. Tokens          — every colour/size the cockpit uses (light + dark)
+     2. Desk integration — fitting the prototype shell inside the Desk page
+     3. Ported rules    — the prototype's CSS, machine-converted:
+                          • every rule is scoped under .fx-app (never leaks into Desk)
+                          • the FIRST class of every compound is prefixed fx-
+                            (.card → .fx-card, .btn.pri → .fx-btn.pri)
+                          • modifiers (.on .off .sm .pri .cta .ok .req .g .r …) are NOT prefixed
+                          • print / toast / modal / top-bar rules dropped
+                            (Desk provides page head, frappe.show_alert, frappe.ui.Dialog)
+     4. Standard form theming (.fx-form) — ForceX look on normal DocType forms
+   PORTING RULE FOR MARKUP: class="card pad stack" → class="fx-card fx-pad fx-stack",
+                            class="btn sm pri"    → class="fx-btn sm pri".
+   ============================================================================= */
+
+/* ---------- 1. TOKENS --------------------------------------------------------- */
+.fx-app, .fx-form {
+  /* brand */
+  --fx-navy:#0F3870; --fx-deep:#0B1C33; --fx-side2:#13284A; --fx-orange:#F26522;
+  --fx-cta:#C2410C;  --fx-cta2:#9A3412;
+  /* surfaces & lines */
+  --fx-bg:#EEF1F6; --fx-surface:#FFFFFF; --fx-surface-2:#F8FAFC; --fx-surface-3:#F3F6FA;
+  --fx-line:#DCE2EC; --fx-line2:#E6EAF1; --fx-control-line:#C9D2E0;
+  /* text */
+  --fx-ink:#18222F; --fx-ink-2:#2D3748; --fx-mut:#4A5568; --fx-mut2:#5A6577;
+  /* status */
+  --fx-ok:#16653A; --fx-okbg:#E3F4EA; --fx-bad:#A61B1B; --fx-badbg:#FDE8E8;
+  --fx-warn:#9A3412; --fx-warnbg:#FFF1E6; --fx-info:#0F3870; --fx-infobg:#E6EEF9;
+  /* type — IBM Plex if present (self-host, see README), else the Desk's own stack */
+  --fx-font:'IBM Plex Sans', var(--font-stack, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  --fx-font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Dark mode: v16 sets data-theme="dark" on <html> (confirmed on frappe 16.51.1). */
+[data-theme="dark"] .fx-app, [data-theme="dark"] .fx-form {
+  --fx-bg:#0E1624; --fx-surface:#152033; --fx-surface-2:#1A263B; --fx-surface-3:#1F2D45;
+  --fx-line:#26344D; --fx-line2:#22304A; --fx-control-line:#33445F;
+  --fx-ink:#E6EAF1; --fx-ink-2:#CBD3E1; --fx-mut:#A7B3C6; --fx-mut2:#8C9AB1;
+  --fx-navy:#8DB3F0;        /* navy text/links must lighten to stay readable */
+  --fx-deep:#E6EAF1;        /* headings */
+  --fx-okbg:#12321F; --fx-badbg:#3A1515; --fx-warnbg:#3A2210; --fx-infobg:#16284A;
+  --fx-ok:#7FD1A2; --fx-bad:#F29A9A; --fx-warn:#F5B27A; --fx-info:#8DB3F0;
+}
+/* Elements that must keep the brand navy as a BACKGROUND in dark mode */
+[data-theme="dark"] .fx-app .fx-hdr,
+[data-theme="dark"] .fx-app .fx-btn.pri,
+[data-theme="dark"] .fx-app .fx-tab.on,
+[data-theme="dark"] .fx-app .fx-c-job,
+[data-theme="dark"] .fx-app .fx-side,
+[data-theme="dark"] .fx-app .fx-phone .fx-ph { background:#0F3870; border-color:#0F3870; color:#fff; }
+[data-theme="dark"] .fx-app .fx-mnav,
+[data-theme="dark"] .fx-app .fx-btn.pri:hover { background:#0B1C33; }
+[data-theme="dark"] .fx-app .fx-p-or,
+[data-theme="dark"] .fx-app .fx-logo,
+[data-theme="dark"] .fx-app .fx-mnav a.on { color:#0B1C33; }
+[data-theme="dark"] .fx-app .fx-p-mute { background:#24324A; color:#CBD3E1; }
+[data-theme="dark"] .fx-app .fx-p-pur  { background:#2B1D45; color:#CDB6F5; }
+
+/* ---------- 2. DESK INTEGRATION ---------------------------------------------- */
+/* The Desk navbar is sticky; the in-page rail sits below it.
+   --navbar-height is defined by the v16 desk bundle (confirmed). */
+.fx-app { --fx-top: var(--navbar-height, 48px); border-radius:var(--border-radius-lg, 10px); overflow:hidden; }
+.fx-app .fx-shell { min-height:calc(100vh - var(--fx-top) - 60px); }
+.fx-app .fx-side  { top:var(--fx-top); height:calc(100vh - var(--fx-top)); }
+.fx-app .fx-body  { max-width:none; }
+/* The Desk page head already shows the title; keep the prototype eyebrow + h1 compact */
+.fx-app h1 { font-size:22px; }
+/* Desk/bootstrap sets button & input fonts; restore ours inside the cockpit */
+.fx-app button, .fx-app input, .fx-app select, .fx-app textarea { font-family:inherit; }
+
+/* ---------- 3. PORTED PROTOTYPE RULES (generated — edit tokens, not hex) ------ */
+.fx-app, .fx-app * { box-sizing:border-box }
+.fx-app { margin:0 }
+.fx-app { background:var(--fx-bg);font-family:var(--fx-font);color:var(--fx-ink);font-size:14px;line-height:1.4 }
+.fx-app a { color:var(--fx-navy) }
+.fx-app a:hover { color:var(--fx-deep) }
+.fx-app .fx-mono { font-family:var(--fx-font-mono) }
+.fx-app .fx-shell { display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh }
+.fx-app main { min-width:0 }
+.fx-app .fx-side { background:var(--fx-deep);color:#B9C5D8;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:auto }
+.fx-app .fx-brand { padding:18px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1C2F4D }
+.fx-app .fx-logo { width:36px;height:36px;border-radius:8px;background:var(--fx-orange);color:var(--fx-deep);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center }
+.fx-app .fx-navh { padding:20px 20px 6px;font-size:11px;letter-spacing:.1em;color:#8496B3;font-weight:600 }
+.fx-app .fx-nav { display:flex;align-items:center;gap:10px;padding:0 16px 0 17px;min-height:42px;color:#C9D3E3;text-decoration:none;font-size:13.5px;border-left:3px solid transparent }
+.fx-app .fx-nav:hover { background:var(--fx-side2);color:#fff }
+.fx-app .fx-nav.on { background:var(--fx-side2);color:#fff;border-left-color:var(--fx-orange) }
+.fx-app .fx-nav .fx-k { font-family:var(--fx-font-mono);font-size:11px;color:#8496B3;width:22px }
+.fx-app .fx-nav .fx-cnt { margin-left:auto;min-width:22px;height:20px;border-radius:10px;background:#22395E;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px }
+.fx-app .fx-sidefoot { margin-top:auto;padding:16px 20px;border-top:1px solid #1C2F4D;font-size:12px;color:#8496B3;line-height:1.5 }
+.fx-app .fx-dot { width:8px;height:8px;border-radius:4px;display:inline-block }
+.fx-app .fx-avatar { width:34px;height:34px;border-radius:17px;background:var(--fx-navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0 }
+.fx-app .fx-mnav { display:none;overflow-x:auto;gap:6px;padding:8px 16px;background:var(--fx-deep) }
+.fx-app .fx-mnav a { flex-shrink:0;color:#C9D3E3;text-decoration:none;font-size:13px;padding:8px 12px;border-radius:16px;background:var(--fx-side2) }
+.fx-app .fx-mnav a.on { background:var(--fx-orange);color:var(--fx-deep);font-weight:600 }
+.fx-app .fx-body { padding:28px;display:flex;flex-direction:column;gap:20px;max-width:1340px }
+.fx-app .fx-eyebrow { font-family:var(--fx-font-mono);font-size:12px;color:var(--fx-cta);font-weight:600 }
+.fx-app h1 { margin:4px 0 0;font-size:24px;font-weight:700;color:var(--fx-deep);letter-spacing:-.01em }
+.fx-app .fx-sub { margin:6px 0 0;color:var(--fx-mut);font-size:14px }
+.fx-app .fx-card { background:var(--fx-surface);border:1px solid var(--fx-line);border-radius:10px }
+.fx-app .fx-pad { padding:20px }
+.fx-app .fx-stack { display:flex;flex-direction:column;gap:14px }
+.fx-app .fx-row { display:flex;gap:10px;align-items:center;flex-wrap:wrap }
+.fx-app .fx-sec { font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--fx-navy);text-transform:uppercase;margin:0 }
+.fx-app .fx-lbl { display:block;font-size:12px;color:var(--fx-mut);margin-bottom:6px;font-weight:500 }
+.fx-app .fx-in { width:100%;height:40px;border:1px solid var(--fx-control-line);border-radius:6px;padding:0 10px;font:inherit;color:var(--fx-ink);background:var(--fx-surface) }
+.fx-app .fx-in:focus { outline:2px solid var(--fx-orange);outline-offset:0;border-color:var(--fx-orange) }
+.fx-app .fx-in:disabled, .fx-app .fx-in[readonly] { background:var(--fx-surface-3);color:var(--fx-ink-2) }
+.fx-app textarea.fx-in { height:auto;padding:10px;line-height:1.5;resize:vertical }
+.fx-app .fx-ro { display:flex;align-items:center;background:var(--fx-surface-2) }
+.fx-app .fx-btn { height:40px;padding:0 16px;border-radius:6px;border:1px solid var(--fx-control-line);background:var(--fx-surface);color:var(--fx-navy);font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap }
+.fx-app .fx-btn:hover { background:var(--fx-surface-3);color:var(--fx-deep) }
+.fx-app .fx-btn:focus-visible, .fx-app .fx-cell:focus-visible, .fx-app .fx-tab:focus-visible, .fx-app .fx-opt:focus-within, .fx-app .fx-seg:focus-visible, .fx-app .fx-star:focus-visible { outline:2px solid var(--fx-orange);outline-offset:2px }
+.fx-app .fx-btn.sm { height:34px;font-size:13px;padding:0 12px }
+.fx-app .fx-btn.pri { background:var(--fx-navy);border-color:var(--fx-navy);color:#fff }
+.fx-app .fx-btn.pri:hover { background:var(--fx-deep) }
+.fx-app .fx-btn.cta { background:var(--fx-cta);border-color:var(--fx-cta);color:#fff }
+.fx-app .fx-btn.cta:hover { background:var(--fx-cta2) }
+.fx-app .fx-btn.ghost { border-color:transparent;background:transparent }
+.fx-app .fx-btn:disabled, .fx-app .fx-btn:disabled:hover { background:#E3E7EE;border-color:#E3E7EE;color:#6B7586;cursor:not-allowed }
+.fx-app .fx-pill { display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap }
+.fx-app .fx-p-ok { background:var(--fx-okbg);color:var(--fx-ok) }
+.fx-app .fx-p-bad { background:var(--fx-badbg);color:var(--fx-bad) }
+.fx-app .fx-p-warn { background:var(--fx-warnbg);color:var(--fx-warn) }
+.fx-app .fx-p-info { background:var(--fx-infobg);color:var(--fx-info) }
+.fx-app .fx-p-mute { background:#EDF0F4;color:#4A5568 }
+.fx-app .fx-p-pur { background:#F1EAFB;color:#5B2A99 }
+.fx-app .fx-p-or { background:var(--fx-orange);color:var(--fx-deep) }
+.fx-app .fx-g2 { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px }
+.fx-app .fx-g3 { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px }
+.fx-app .fx-g4 { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px }
+.fx-app .fx-g6 { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px }
+.fx-app .fx-split { display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start }
+.fx-app .fx-kpi { padding:16px 18px }
+.fx-app .fx-kpi .fx-v { font-size:30px;font-weight:700;color:var(--fx-deep);margin-top:6px;font-family:var(--fx-font-mono) }
+.fx-app .fx-stage { display:block;text-decoration:none;color:var(--fx-ink);padding:14px;border-radius:8px;border:1px solid var(--fx-line);background:var(--fx-surface);min-height:92px }
+.fx-app .fx-stage:hover { border-color:var(--fx-navy);color:var(--fx-ink) }
+.fx-app .fx-tab { height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--fx-control-line);background:var(--fx-surface);font:inherit;font-size:13px;font-weight:500;color:var(--fx-ink-2);cursor:pointer }
+.fx-app .fx-tab.on { background:var(--fx-navy);border-color:var(--fx-navy);color:#fff }
+.fx-app .fx-scroll { overflow-x:auto }
+.fx-app table.fx-t { width:100%;border-collapse:collapse;font-size:13.5px }
+.fx-app table.fx-t th { text-align:left;color:var(--fx-mut);font-size:12px;font-weight:600;padding:12px 10px }
+.fx-app table.fx-t td { padding:12px 10px;border-top:1px solid var(--fx-line2);vertical-align:top }
+.fx-app table.fx-t tr:hover td { background:var(--fx-surface-3) }
+.fx-app table.fx-t th:first-child, .fx-app table.fx-t td:first-child { padding-left:20px }
+.fx-app table.fx-t th:last-child, .fx-app table.fx-t td:last-child { padding-right:20px }
+.fx-app .fx-small { font-size:12px;color:var(--fx-mut2) }
+.fx-app .fx-hdr { padding:14px 20px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;background:var(--fx-navy);border-color:var(--fx-navy);color:#fff }
+.fx-app .fx-hdr .fx-k { font-size:11px;color:#B9C5D8;letter-spacing:.06em }
+.fx-app .fx-hdr .fx-v { font-weight:600 }
+.fx-app .fx-radio { display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border:1px solid var(--fx-control-line);border-radius:6px;cursor:pointer;font-size:13.5px;background:var(--fx-surface) }
+.fx-app .fx-radio.on { border-color:var(--fx-navy);background:var(--fx-surface-3) }
+.fx-app .fx-chip { height:30px;padding:0 10px;border-radius:15px;border:1px dashed #8496B3;background:var(--fx-surface);font:inherit;font-size:12px;color:var(--fx-navy);cursor:pointer }
+.fx-app .fx-assetgrid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--fx-line);border:1px solid var(--fx-line);border-radius:8px;overflow:hidden }
+.fx-app .fx-assetgrid>div { background:var(--fx-surface-2);padding:10px 12px }
+.fx-app .fx-assetgrid .fx-k { font-size:11px;color:var(--fx-mut2);text-transform:uppercase;letter-spacing:.06em }
+.fx-app .fx-assetgrid .fx-v { font-weight:600;margin-top:3px;font-size:13.5px }
+.fx-app .fx-note { padding:12px 14px;border-radius:8px;font-size:13px }
+.fx-app .fx-n-warn { background:#FFF6EE;border:1px solid #F5C9A6;color:#7A2E0B }
+.fx-app .fx-n-bad { background:var(--fx-badbg);color:var(--fx-bad) }
+.fx-app .fx-n-ok { background:#F2FBF6;border:1px solid #A8DDBF;color:var(--fx-ok) }
+.fx-app .fx-n-info { background:var(--fx-surface-3);border:1px solid #C9D7EE;color:var(--fx-navy) }
+.fx-app .fx-n-pur { background:#F5F0FC;border:1px solid #D3C1EE;color:#45207A }
+.fx-app .fx-file { border:1px solid var(--fx-line);border-radius:8px;padding:12px;display:flex;align-items:center;gap:12px }
+.fx-app .fx-file.req { background:#FFF8F8 }
+.fx-app .fx-ficon { width:38px;height:38px;border-radius:6px;background:var(--fx-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0 }
+.fx-app .fx-gate { list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px }
+.fx-app .fx-gate li { display:flex;gap:10px;align-items:flex-start;font-size:13px }
+.fx-app .fx-gate .fx-m { width:18px;height:18px;border-radius:9px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff }
+.fx-app .fx-opt { display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--fx-line);border-radius:8px;cursor:pointer;background:var(--fx-surface) }
+.fx-app .fx-opt.on { border-color:var(--fx-cta);box-shadow:inset 3px 0 0 var(--fx-cta) }
+.fx-app .fx-opt.off { background:var(--fx-surface-3);opacity:.78;cursor:not-allowed }
+.fx-app .fx-opt input { margin-top:3px;width:18px;height:18px;flex-shrink:0 }
+.fx-app .fx-seg { height:40px;padding:0 14px;border:1px solid var(--fx-control-line);background:var(--fx-surface);font:inherit;font-weight:700;font-size:13px;cursor:pointer;color:var(--fx-ink-2) }
+.fx-app .fx-seg:first-child { border-radius:6px 0 0 6px }
+.fx-app .fx-seg:last-child { border-radius:0 6px 6px 0;margin-left:-1px }
+.fx-app .fx-seg.g { background:#1F7A45;border-color:#1F7A45;color:#fff }
+.fx-app .fx-seg.r { background:var(--fx-bad);border-color:var(--fx-bad);color:#fff }
+.fx-app .fx-star { width:44px;height:44px;border:1px solid var(--fx-control-line);border-radius:6px;background:var(--fx-surface);font-size:20px;cursor:pointer;color:#8496B3 }
+.fx-app .fx-star.on { color:var(--fx-cta);border-color:var(--fx-cta);background:#FFF6EE }
+.fx-app .fx-check { display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--fx-line2);border-radius:8px;flex-wrap:wrap }
+.fx-app .fx-check.done { background:var(--fx-surface-2) }
+.fx-app .fx-bar { height:6px;background:var(--fx-bg);border-radius:3px;overflow:hidden }
+.fx-app .fx-bar>div { height:6px;background:var(--fx-navy) }
+.fx-app .fx-cal { display:grid;grid-template-columns:220px repeat(4,minmax(150px,1fr));gap:8px;min-width:900px }
+.fx-app .fx-cell { min-height:76px;border-radius:8px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:3px;width:100%;border:1px solid }
+.fx-app .fx-c-free { border:1px dashed #6F84A6;background:var(--fx-surface);color:var(--fx-navy) }
+.fx-app .fx-c-free.drop { background:#FFF6EE;border-color:var(--fx-cta) }
+.fx-app .fx-c-sel { border:2px solid var(--fx-cta);background:#FFF6EE;color:#7A2E0B }
+.fx-app .fx-c-job { border-color:var(--fx-navy);background:var(--fx-navy);color:#fff }
+.fx-app .fx-c-done { border-color:#5A6F92;background:#5A6F92;color:#fff }
+.fx-app .fx-c-new { border-color:var(--fx-cta);background:var(--fx-cta);color:#fff }
+.fx-app .fx-c-transit { border-color:#F0D27A;background:#FCE9A8;color:#5C4300 }
+.fx-app .fx-c-meet { border-color:#CBD2DC;background:#DDE2EA;color:var(--fx-ink-2) }
+.fx-app .fx-q { border:1px solid var(--fx-line);border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:grab;background:var(--fx-surface);flex-wrap:wrap }
+.fx-app .fx-q.on { border-color:var(--fx-cta);background:#FFFAF5 }
+.fx-app .fx-legend { display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fx-ink-2) }
+.fx-app .fx-legend span { display:flex;gap:6px;align-items:center }
+.fx-app .fx-legend i { width:14px;height:14px;border-radius:3px;display:inline-block }
+.fx-app .fx-phone { width:100%;max-width:420px;margin:0 auto;background:var(--fx-bg);border:1px solid var(--fx-line);border-radius:22px;overflow:hidden;box-shadow:0 12px 40px rgba(11,28,51,.12) }
+.fx-app .fx-phone .fx-ph { background:var(--fx-deep);color:#fff;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px }
+.fx-app .fx-phone .fx-pb { padding:16px;display:flex;flex-direction:column;gap:14px }
+.fx-app .fx-phone .fx-card { border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px }
+.fx-app .fx-phone .fx-in { height:48px;font-size:15px }
+.fx-app .fx-phone .fx-btn { height:48px }
+.fx-app .fx-step { width:44px;height:44px;border:1px solid var(--fx-control-line);border-radius:8px;background:var(--fx-surface);font:inherit;font-size:20px;color:var(--fx-navy);cursor:pointer }
+.fx-app canvas.fx-sig { width:100%;height:130px;display:block;border:1px dashed #8496B3;border-radius:8px;background:var(--fx-surface-2);touch-action:none;cursor:crosshair }
+.fx-app canvas.fx-sig.ok { border-color:#1F7A45 }
+.fx-app .fx-steps { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0 }
+.fx-app .fx-steps li { display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600 }
+.fx-app .fx-steps i { height:6px;border-radius:3px;display:block }
+.fx-app .fx-trail { list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px }
+.fx-app .fx-trail li { border-left:2px solid var(--fx-line);padding-left:12px }
+.fx-app .fx-trail li.on { border-left-color:var(--fx-navy) }
+.fx-app .fx-empty { padding:40px 20px;text-align:center;color:var(--fx-mut2) }
+.fx-app .fx-sr { position:absolute;left:-9999px }
+.fx-app input[type=file] { display:none }
+@media (max-width:1100px) {
+.fx-app .fx-split { grid-template-columns:1fr }
+.fx-app .fx-g6 { grid-template-columns:repeat(3,minmax(0,1fr)) }
+}
+@media (max-width:960px) {
+.fx-app .fx-shell { grid-template-columns:1fr }
+.fx-app .fx-side { display:none }
+.fx-app .fx-mnav { display:flex }
+.fx-app .fx-g2, .fx-app .fx-g3, .fx-app .fx-g4 { grid-template-columns:1fr }
+.fx-app .fx-assetgrid { grid-template-columns:repeat(2,minmax(0,1fr)) }
+.fx-app .fx-steps { grid-template-columns:repeat(3,minmax(0,1fr)) }
+.fx-app .fx-body { padding:16px }
+.fx-app .fx-picker-w { min-width:0 !important;width:100% }
+}
+@media (max-width:560px) {
+.fx-app .fx-g6 { grid-template-columns:repeat(2,minmax(0,1fr)) }
+}
+
+
+/* ---------- 4. STANDARD FORM THEMING (.fx-form) --------------------------------
+   forcex_ui.bundle.js adds .fx-form to the form wrapper of every ForceX Service
+   DocType, so list-opened records look like the cockpit without a custom page.
+   Selectors below target Desk form markup — 🔍 confirm class names on v16. */
+.fx-form .form-section .section-head,
+.fx-form .section-head { font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--fx-navy); }
+.fx-form .form-section.card-section, .fx-form .form-dashboard-section { border-radius:10px; }
+.fx-form .control-label { font-size:12px; color:var(--fx-mut); font-weight:500; }
+.fx-form .form-control:focus { border-color:var(--fx-orange); box-shadow:0 0 0 2px rgba(242,101,34,.25); }
+.fx-form .btn-primary { background:var(--fx-cta); border-color:var(--fx-cta); }
+.fx-form .btn-primary:hover { background:var(--fx-cta2); border-color:var(--fx-cta2); }
+/* The navy ticket band rendered into the `fx_header` HTML field */
+.fx-form .fx-band { display:flex; flex-wrap:wrap; gap:24px; align-items:center; padding:14px 20px;
+  border-radius:10px; background:#0F3870; color:#fff; font-family:var(--fx-font); }
+.fx-form .fx-band .k { font-size:11px; color:#B9C5D8; letter-spacing:.06em; }
+.fx-form .fx-band .v { font-weight:600; }
+.fx-form .fx-band .v.mono { font-family:var(--fx-font-mono); }
+.fx-form .fx-band .fx-band-stage { margin-left:auto; background:#F26522; color:#0B1C33; border-radius:12px;
+  height:24px; padding:0 10px; display:inline-flex; align-items:center; font-size:12px; font-weight:600; }

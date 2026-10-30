@@ -1,6 +1,23 @@
-### SAS ForceX
+### ForceX (sas_forcex)
 
-Service & Warranty for FLEETO
+The ForceX platform layer, installed on every tenant:
+
+| Path | What it is |
+| --- | --- |
+| `public/css/forcex_desk_theme.bundle.css` | ForceX palette for the whole Desk (via Desk CSS variables) |
+| `public/css/forcex_components.bundle.css` | `.fx-*` design system used by the `forcex.ui` helpers |
+| `public/js/forcex_rebrand.bundle.js` | Replaces Frappe / ERPNext / HRMS names with ForceX names in the UI |
+| `public/js/forcex_ui.bundle.js` | Generic `forcex.ui` component kit + `themeForms()` |
+| `tests_js/` | Node unit tests for both JS bundles |
+
+Product features live in their own apps, e.g. **sas_forcex_fleeto** (FLEETO Service & Warranty).
+
+### Testing
+
+```bash
+# from apps/sas_forcex
+node --test sas_forcex/tests_js/*.test.cjs
+```
 
 ### Installation
 

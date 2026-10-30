@@ -1,7 +1,7 @@
 app_name = "sas_forcex"
-app_title = "SAS ForceX"
+app_title = "ForceX"
 app_publisher = "SAS Infosystem Pvt Ltd"
-app_description = "Service & Warranty for FLEETO"
+app_description = "ForceX platform layer: Desk theme, rebranding and the shared forcex.ui component kit"
 app_email = "subhapriyo.banerjee@sasinfosystem.com"
 app_license = "mit"
 
@@ -256,3 +256,16 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+# ---- ForceX platform assets ---------------------------------------------------
+# This app holds ONLY what every ForceX tenant shares: the Desk palette, the
+# shared component styles, the rebrand layer and the forcex.ui JS kit.
+# Product features live in their own apps (FLEETO → sas_forcex_fleeto).
+#   forcex_desk_theme      re-colours the whole Desk via its CSS variables
+#   forcex_components      .fx-* design system used by forcex.ui helpers
+app_include_css = ["forcex_desk_theme.bundle.css", "forcex_components.bundle.css"]
+# forcex_rebrand loads first so upstream names (Frappe, ERPNext, HRMS, ...) are
+# replaced with ForceX names before other ForceX code renders anything.
+app_include_js = ["forcex_rebrand.bundle.js", "forcex_ui.bundle.js"]
+# Same rebranding on website pages (login, portal).
+web_include_js = ["forcex_rebrand.bundle.js"]
