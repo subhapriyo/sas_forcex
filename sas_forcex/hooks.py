@@ -261,11 +261,23 @@ app_license = "mit"
 # This app holds ONLY what every ForceX tenant shares: the Desk palette, the
 # shared component styles, the rebrand layer and the forcex.ui JS kit.
 # Product features live in their own apps (FLEETO → sas_forcex_fleeto).
-#   forcex_desk_theme      re-colours the whole Desk via its CSS variables
+#   forcex_harbour         ForceX Harbour light/dark theme (re-tints v16 Espresso tokens)
+#   (forcex_desk_theme.bundle.css kept in public/css but no longer loaded)
 #   forcex_components      .fx-* design system used by forcex.ui helpers
-app_include_css = ["forcex_desk_theme.bundle.css", "forcex_components.bundle.css"]
+app_include_css = ["forcex_harbour.bundle.css", "forcex_components.bundle.css"]
+# Harbour also styles the login / portal pages.
+web_include_css = ["forcex_harbour.bundle.css"]
 # forcex_rebrand loads first so upstream names (Frappe, ERPNext, HRMS, ...) are
 # replaced with ForceX names before other ForceX code renders anything.
-app_include_js = ["forcex_rebrand.bundle.js", "forcex_ui.bundle.js"]
+app_include_js = ["forcex_harbour.bundle.js", "forcex_rebrand.bundle.js", "forcex_ui.bundle.js"]
 # Same rebranding on website pages (login, portal).
 web_include_js = ["forcex_rebrand.bundle.js"]
+
+# ---- ForceX theme (ForceX Theme Settings single) --------------------------------
+# Logic: sas_forcex/theme_engine.py (pure, unit-tested) · Frappe glue: sas_forcex/theme.py
+# Desk gets the theme in frappe.boot.forcex_theme (also switches search off per role);
+# website/login pages get an inline <style> + <script> in <head>.
+extend_bootinfo = ["sas_forcex.theme.extend_bootinfo"]
+update_website_context = ["sas_forcex.theme.update_website_context"]
+# Fresh sites start with the ForceX palette prefilled (existing sites: patch v16_0).
+after_install = "sas_forcex.theme.after_install"

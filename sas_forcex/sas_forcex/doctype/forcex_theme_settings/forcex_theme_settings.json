@@ -1,0 +1,1053 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-02 13:30:00.000000",
+ "description": "Light and dark theme for the ForceX Desk and login page.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "general_tab",
+  "theme_section",
+  "enabled",
+  "appearance",
+  "font_family",
+  "corner_style",
+  "brand_section",
+  "primary_color",
+  "accent_color",
+  "login_tab",
+  "login_layout_section",
+  "login_title",
+  "login_box_position",
+  "login_appearance",
+  "login_animation",
+  "show_login_accent",
+  "login_footer",
+  "login_bg_section",
+  "login_background",
+  "login_background_color",
+  "login_background_image",
+  "login_colors_section",
+  "login_colors_light_col",
+  "login_page_bg",
+  "login_card_bg",
+  "login_text",
+  "login_button_bg",
+  "login_button_text",
+  "login_button_hover",
+  "login_colors_dark_col",
+  "login_page_bg_dark",
+  "login_card_bg_dark",
+  "login_text_dark",
+  "login_button_bg_dark",
+  "login_button_text_dark",
+  "login_button_hover_dark",
+  "login_panel_section",
+  "show_side_panel",
+  "side_panel_headline",
+  "side_panel_tagline",
+  "navigation_tab",
+  "navbar_section",
+  "navbar_light_col",
+  "navbar_bg",
+  "navbar_text",
+  "navbar_dark_col",
+  "navbar_bg_dark",
+  "navbar_text_dark",
+  "sidebar_section",
+  "sidebar_light_col",
+  "sidebar_bg",
+  "sidebar_text",
+  "sidebar_active_bg",
+  "sidebar_active_text",
+  "sidebar_dark_col",
+  "sidebar_bg_dark",
+  "sidebar_text_dark",
+  "sidebar_active_bg_dark",
+  "sidebar_active_text_dark",
+  "nav_visibility_section",
+  "hide_help",
+  "hide_search_for_roles",
+  "buttons_tab",
+  "primary_btn_section",
+  "primary_btn_light_col",
+  "primary_btn_bg",
+  "primary_btn_text",
+  "primary_btn_hover",
+  "primary_btn_dark_col",
+  "primary_btn_bg_dark",
+  "primary_btn_text_dark",
+  "primary_btn_hover_dark",
+  "secondary_btn_section",
+  "secondary_btn_light_col",
+  "secondary_btn_bg",
+  "secondary_btn_text",
+  "secondary_btn_hover",
+  "secondary_btn_border",
+  "secondary_btn_dark_col",
+  "secondary_btn_bg_dark",
+  "secondary_btn_text_dark",
+  "secondary_btn_hover_dark",
+  "secondary_btn_border_dark",
+  "body_tab",
+  "body_colors_section",
+  "body_colors_light_col",
+  "body_bg",
+  "content_bg",
+  "text_color",
+  "muted_text",
+  "border_color",
+  "body_colors_dark_col",
+  "body_bg_dark",
+  "content_bg_dark",
+  "text_color_dark",
+  "muted_text_dark",
+  "border_color_dark",
+  "body_layout_section",
+  "hide_list_sidebar",
+  "tables_tab",
+  "table_colors_section",
+  "table_colors_light_col",
+  "table_header_bg",
+  "table_header_text",
+  "table_body_bg",
+  "table_body_text",
+  "table_row_hover",
+  "table_colors_dark_col",
+  "table_header_bg_dark",
+  "table_header_text_dark",
+  "table_body_bg_dark",
+  "table_body_text_dark",
+  "table_row_hover_dark",
+  "list_behaviour_section",
+  "hide_list_likes_comments",
+  "mobile_card_view",
+  "mobile_wrap_content",
+  "widgets_tab",
+  "number_cards_section",
+  "number_cards_light_col",
+  "card_bg",
+  "card_border",
+  "card_value_text",
+  "card_label_text",
+  "number_cards_dark_col",
+  "card_bg_dark",
+  "card_border_dark",
+  "card_value_text_dark",
+  "card_label_text_dark",
+  "inputs_section",
+  "inputs_light_col",
+  "input_bg",
+  "input_border",
+  "input_text",
+  "input_label",
+  "input_focus",
+  "inputs_dark_col",
+  "input_bg_dark",
+  "input_border_dark",
+  "input_text_dark",
+  "input_label_dark",
+  "input_focus_dark",
+  "advanced_tab",
+  "transfer_section",
+  "export_settings_btn",
+  "import_settings_btn",
+  "custom_section",
+  "custom_css"
+ ],
+ "fields": [
+  {
+   "fieldname": "general_tab",
+   "fieldtype": "Tab Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "theme_section",
+   "fieldtype": "Section Break",
+   "label": "Theme"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable ForceX theme",
+   "default": "1",
+   "description": "Untick to switch the theme off everywhere. No rebuild needed."
+  },
+  {
+   "fieldname": "appearance",
+   "fieldtype": "Select",
+   "label": "Appearance",
+   "default": "Follow user preference",
+   "options": "Follow user preference\nAlways Light\nAlways Dark",
+   "description": "Always Light / Always Dark override each user's own Toggle Theme choice."
+  },
+  {
+   "fieldname": "font_family",
+   "fieldtype": "Select",
+   "label": "Font",
+   "default": "IBM Plex Sans",
+   "options": "IBM Plex Sans\nInter\nSystem UI"
+  },
+  {
+   "fieldname": "corner_style",
+   "fieldtype": "Select",
+   "label": "Corner style",
+   "default": "Default",
+   "options": "Compact\nDefault\nRounded",
+   "description": "Roundness of buttons, inputs and cards."
+  },
+  {
+   "fieldname": "brand_section",
+   "fieldtype": "Section Break",
+   "label": "Brand colours",
+   "description": "Used for accents across the Desk. Each area below has its own colours too."
+  },
+  {
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary (brand navy)",
+   "default": "#0F3870"
+  },
+  {
+   "fieldname": "accent_color",
+   "fieldtype": "Color",
+   "label": "Accent (highlights, active markers)",
+   "default": "#F26522"
+  },
+  {
+   "fieldname": "login_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login Page"
+  },
+  {
+   "fieldname": "login_layout_section",
+   "fieldtype": "Section Break",
+   "label": "Layout & title"
+  },
+  {
+   "fieldname": "login_title",
+   "fieldtype": "Data",
+   "label": "Login page title",
+   "default": "Sign in to ForceX",
+   "length": 30,
+   "description": "Heading above the sign-in form (max 30 characters)."
+  },
+  {
+   "fieldname": "login_box_position",
+   "fieldtype": "Select",
+   "label": "Login box position",
+   "default": "Default",
+   "options": "Default\nLeft\nRight",
+   "description": "Left / Right apply from 768px wide; phones always centre the box."
+  },
+  {
+   "fieldname": "login_appearance",
+   "fieldtype": "Select",
+   "label": "Login page appearance",
+   "default": "Light",
+   "options": "Light\nDark\nFollow device"
+  },
+  {
+   "fieldname": "login_animation",
+   "fieldtype": "Check",
+   "label": "Fade-in animation",
+   "default": "1"
+  },
+  {
+   "fieldname": "show_login_accent",
+   "fieldtype": "Check",
+   "label": "Accent bar on the login box",
+   "default": "1"
+  },
+  {
+   "fieldname": "login_footer",
+   "fieldtype": "Select",
+   "label": "Footer on login page",
+   "default": "Theme default",
+   "options": "Theme default\nShow\nHide"
+  },
+  {
+   "fieldname": "login_bg_section",
+   "fieldtype": "Section Break",
+   "label": "Background"
+  },
+  {
+   "fieldname": "login_background",
+   "fieldtype": "Select",
+   "label": "Background",
+   "default": "Theme default",
+   "options": "Theme default\nColour\nImage"
+  },
+  {
+   "fieldname": "login_background_color",
+   "fieldtype": "Color",
+   "label": "Background colour",
+   "default": "#0B1C33",
+   "depends_on": "eval:doc.login_background=='Colour'",
+   "mandatory_depends_on": "eval:doc.login_background=='Colour'"
+  },
+  {
+   "fieldname": "login_background_image",
+   "fieldtype": "Attach Image",
+   "label": "Background image",
+   "description": "Attach as a public file, 1920px wide or more.",
+   "depends_on": "eval:doc.login_background=='Image'",
+   "mandatory_depends_on": "eval:doc.login_background=='Image'"
+  },
+  {
+   "fieldname": "login_colors_section",
+   "fieldtype": "Section Break",
+   "label": "Login colours"
+  },
+  {
+   "fieldname": "login_colors_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "login_page_bg",
+   "fieldtype": "Color",
+   "label": "Page background",
+   "default": "#EEF1F6"
+  },
+  {
+   "fieldname": "login_card_bg",
+   "fieldtype": "Color",
+   "label": "Login box background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "login_text",
+   "fieldtype": "Color",
+   "label": "Login box text",
+   "default": "#18222F"
+  },
+  {
+   "fieldname": "login_button_bg",
+   "fieldtype": "Color",
+   "label": "Login button",
+   "default": "#0F3870"
+  },
+  {
+   "fieldname": "login_button_text",
+   "fieldtype": "Color",
+   "label": "Login button text",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "login_button_hover",
+   "fieldtype": "Color",
+   "label": "Login button hover",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "login_colors_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "login_page_bg_dark",
+   "fieldtype": "Color",
+   "label": "Page background (dark)",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "login_card_bg_dark",
+   "fieldtype": "Color",
+   "label": "Login box background (dark)",
+   "default": "#121F31"
+  },
+  {
+   "fieldname": "login_text_dark",
+   "fieldtype": "Color",
+   "label": "Login box text (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "login_button_bg_dark",
+   "fieldtype": "Color",
+   "label": "Login button (dark)",
+   "default": "#F26522"
+  },
+  {
+   "fieldname": "login_button_text_dark",
+   "fieldtype": "Color",
+   "label": "Login button text (dark)",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "login_button_hover_dark",
+   "fieldtype": "Color",
+   "label": "Login button hover (dark)",
+   "default": "#FF7A3D"
+  },
+  {
+   "fieldname": "login_panel_section",
+   "fieldtype": "Section Break",
+   "label": "Side panel",
+   "description": "Fills the empty half of the page when the login box is on the left or right.",
+   "depends_on": "eval:doc.login_box_position!='Default'"
+  },
+  {
+   "fieldname": "show_side_panel",
+   "fieldtype": "Check",
+   "label": "Show side panel",
+   "default": "0"
+  },
+  {
+   "fieldname": "side_panel_headline",
+   "fieldtype": "Data",
+   "label": "Headline",
+   "default": "ForceX ERP",
+   "length": 140
+  },
+  {
+   "fieldname": "side_panel_tagline",
+   "fieldtype": "Small Text",
+   "label": "Tagline",
+   "default": "Service, warranty and operations on one secure platform."
+  },
+  {
+   "fieldname": "navigation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Navigation"
+  },
+  {
+   "fieldname": "navbar_section",
+   "fieldtype": "Section Break",
+   "label": "Page header (navbar)",
+   "description": "In v16 the top bar is the page header with breadcrumbs and actions."
+  },
+  {
+   "fieldname": "navbar_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "navbar_bg",
+   "fieldtype": "Color",
+   "label": "Header background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "navbar_text",
+   "fieldtype": "Color",
+   "label": "Header text & icons",
+   "default": "#18222F"
+  },
+  {
+   "fieldname": "navbar_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "navbar_bg_dark",
+   "fieldtype": "Color",
+   "label": "Header background (dark)",
+   "default": "#0E1A2B"
+  },
+  {
+   "fieldname": "navbar_text_dark",
+   "fieldtype": "Color",
+   "label": "Header text & icons (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "sidebar_section",
+   "fieldtype": "Section Break",
+   "label": "Sidebar"
+  },
+  {
+   "fieldname": "sidebar_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "sidebar_bg",
+   "fieldtype": "Color",
+   "label": "Sidebar background",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "sidebar_text",
+   "fieldtype": "Color",
+   "label": "Sidebar text & icons",
+   "default": "#C9D3E3"
+  },
+  {
+   "fieldname": "sidebar_active_bg",
+   "fieldtype": "Color",
+   "label": "Active item background",
+   "default": "#13284A"
+  },
+  {
+   "fieldname": "sidebar_active_text",
+   "fieldtype": "Color",
+   "label": "Active item text",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "sidebar_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "sidebar_bg_dark",
+   "fieldtype": "Color",
+   "label": "Sidebar background (dark)",
+   "default": "#08111C"
+  },
+  {
+   "fieldname": "sidebar_text_dark",
+   "fieldtype": "Color",
+   "label": "Sidebar text & icons (dark)",
+   "default": "#B3C0D0"
+  },
+  {
+   "fieldname": "sidebar_active_bg_dark",
+   "fieldtype": "Color",
+   "label": "Active item background (dark)",
+   "default": "#16304F"
+  },
+  {
+   "fieldname": "sidebar_active_text_dark",
+   "fieldtype": "Color",
+   "label": "Active item text (dark)",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "nav_visibility_section",
+   "fieldtype": "Section Break",
+   "label": "Visibility"
+  },
+  {
+   "fieldname": "hide_help",
+   "fieldtype": "Check",
+   "label": "Hide Help in the sidebar menu",
+   "default": "0"
+  },
+  {
+   "fieldname": "hide_search_for_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Hide search for these roles",
+   "options": "ForceX Theme Role",
+   "description": "Users with any of these roles get no search bar. Administrator is never hidden."
+  },
+  {
+   "fieldname": "buttons_tab",
+   "fieldtype": "Tab Break",
+   "label": "Buttons"
+  },
+  {
+   "fieldname": "primary_btn_section",
+   "fieldtype": "Section Break",
+   "label": "Primary buttons",
+   "description": "Save, Submit, New and other solid buttons."
+  },
+  {
+   "fieldname": "primary_btn_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "primary_btn_bg",
+   "fieldtype": "Color",
+   "label": "Background",
+   "default": "#0F3870"
+  },
+  {
+   "fieldname": "primary_btn_text",
+   "fieldtype": "Color",
+   "label": "Text",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "primary_btn_hover",
+   "fieldtype": "Color",
+   "label": "Hover background",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "primary_btn_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "primary_btn_bg_dark",
+   "fieldtype": "Color",
+   "label": "Background (dark)",
+   "default": "#F26522"
+  },
+  {
+   "fieldname": "primary_btn_text_dark",
+   "fieldtype": "Color",
+   "label": "Text (dark)",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "primary_btn_hover_dark",
+   "fieldtype": "Color",
+   "label": "Hover background (dark)",
+   "default": "#FF7A3D"
+  },
+  {
+   "fieldname": "secondary_btn_section",
+   "fieldtype": "Section Break",
+   "label": "Secondary buttons"
+  },
+  {
+   "fieldname": "secondary_btn_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "secondary_btn_bg",
+   "fieldtype": "Color",
+   "label": "Background",
+   "default": "#F1F4F9"
+  },
+  {
+   "fieldname": "secondary_btn_text",
+   "fieldtype": "Color",
+   "label": "Text",
+   "default": "#0F3870"
+  },
+  {
+   "fieldname": "secondary_btn_hover",
+   "fieldtype": "Color",
+   "label": "Hover background",
+   "default": "#E3E8F0"
+  },
+  {
+   "fieldname": "secondary_btn_border",
+   "fieldtype": "Color",
+   "label": "Border",
+   "default": "#C9D2E0"
+  },
+  {
+   "fieldname": "secondary_btn_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "secondary_btn_bg_dark",
+   "fieldtype": "Color",
+   "label": "Background (dark)",
+   "default": "#1C2A3F"
+  },
+  {
+   "fieldname": "secondary_btn_text_dark",
+   "fieldtype": "Color",
+   "label": "Text (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "secondary_btn_hover_dark",
+   "fieldtype": "Color",
+   "label": "Hover background (dark)",
+   "default": "#22324A"
+  },
+  {
+   "fieldname": "secondary_btn_border_dark",
+   "fieldtype": "Color",
+   "label": "Border (dark)",
+   "default": "#33425A"
+  },
+  {
+   "fieldname": "body_tab",
+   "fieldtype": "Tab Break",
+   "label": "Body"
+  },
+  {
+   "fieldname": "body_colors_section",
+   "fieldtype": "Section Break",
+   "label": "Page & content"
+  },
+  {
+   "fieldname": "body_colors_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "body_bg",
+   "fieldtype": "Color",
+   "label": "Page background",
+   "default": "#EEF1F6"
+  },
+  {
+   "fieldname": "content_bg",
+   "fieldtype": "Color",
+   "label": "Content box background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "text_color",
+   "fieldtype": "Color",
+   "label": "Text",
+   "default": "#18222F"
+  },
+  {
+   "fieldname": "muted_text",
+   "fieldtype": "Color",
+   "label": "Muted text",
+   "default": "#4A5568"
+  },
+  {
+   "fieldname": "border_color",
+   "fieldtype": "Color",
+   "label": "Borders",
+   "default": "#DCE2EC"
+  },
+  {
+   "fieldname": "body_colors_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "body_bg_dark",
+   "fieldtype": "Color",
+   "label": "Page background (dark)",
+   "default": "#0B1523"
+  },
+  {
+   "fieldname": "content_bg_dark",
+   "fieldtype": "Color",
+   "label": "Content box background (dark)",
+   "default": "#121F31"
+  },
+  {
+   "fieldname": "text_color_dark",
+   "fieldtype": "Color",
+   "label": "Text (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "muted_text_dark",
+   "fieldtype": "Color",
+   "label": "Muted text (dark)",
+   "default": "#93A1B5"
+  },
+  {
+   "fieldname": "border_color_dark",
+   "fieldtype": "Color",
+   "label": "Borders (dark)",
+   "default": "#22324A"
+  },
+  {
+   "fieldname": "body_layout_section",
+   "fieldtype": "Section Break",
+   "label": "Layout"
+  },
+  {
+   "fieldname": "hide_list_sidebar",
+   "fieldtype": "Check",
+   "label": "Hide the list / form side panel",
+   "default": "0",
+   "description": "The left panel with Assigned To, Tags, Saved Filters."
+  },
+  {
+   "fieldname": "tables_tab",
+   "fieldtype": "Tab Break",
+   "label": "Tables & Lists"
+  },
+  {
+   "fieldname": "table_colors_section",
+   "fieldtype": "Section Break",
+   "label": "Table colours",
+   "description": "List views, child tables in forms, and reports."
+  },
+  {
+   "fieldname": "table_colors_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "table_header_bg",
+   "fieldtype": "Color",
+   "label": "Header row background",
+   "default": "#F8FAFC"
+  },
+  {
+   "fieldname": "table_header_text",
+   "fieldtype": "Color",
+   "label": "Header row text",
+   "default": "#4A5568"
+  },
+  {
+   "fieldname": "table_body_bg",
+   "fieldtype": "Color",
+   "label": "Row background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "table_body_text",
+   "fieldtype": "Color",
+   "label": "Row text",
+   "default": "#18222F"
+  },
+  {
+   "fieldname": "table_row_hover",
+   "fieldtype": "Color",
+   "label": "Row hover",
+   "default": "#F7F9FC"
+  },
+  {
+   "fieldname": "table_colors_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "table_header_bg_dark",
+   "fieldtype": "Color",
+   "label": "Header row background (dark)",
+   "default": "#16243A"
+  },
+  {
+   "fieldname": "table_header_text_dark",
+   "fieldtype": "Color",
+   "label": "Header row text (dark)",
+   "default": "#B3C0D0"
+  },
+  {
+   "fieldname": "table_body_bg_dark",
+   "fieldtype": "Color",
+   "label": "Row background (dark)",
+   "default": "#121F31"
+  },
+  {
+   "fieldname": "table_body_text_dark",
+   "fieldtype": "Color",
+   "label": "Row text (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "table_row_hover_dark",
+   "fieldtype": "Color",
+   "label": "Row hover (dark)",
+   "default": "#182A42"
+  },
+  {
+   "fieldname": "list_behaviour_section",
+   "fieldtype": "Section Break",
+   "label": "List behaviour"
+  },
+  {
+   "fieldname": "hide_list_likes_comments",
+   "fieldtype": "Check",
+   "label": "Hide likes & comment counts",
+   "default": "0"
+  },
+  {
+   "fieldname": "mobile_card_view",
+   "fieldtype": "Check",
+   "label": "Show list rows as cards on phones",
+   "default": "1"
+  },
+  {
+   "fieldname": "mobile_wrap_content",
+   "fieldtype": "Check",
+   "label": "Let row content wrap on phones",
+   "default": "1"
+  },
+  {
+   "fieldname": "widgets_tab",
+   "fieldtype": "Tab Break",
+   "label": "Widgets & Inputs"
+  },
+  {
+   "fieldname": "number_cards_section",
+   "fieldtype": "Section Break",
+   "label": "Number cards"
+  },
+  {
+   "fieldname": "number_cards_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "card_bg",
+   "fieldtype": "Color",
+   "label": "Background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "card_border",
+   "fieldtype": "Color",
+   "label": "Border",
+   "default": "#DCE2EC"
+  },
+  {
+   "fieldname": "card_value_text",
+   "fieldtype": "Color",
+   "label": "Value",
+   "default": "#0B1C33"
+  },
+  {
+   "fieldname": "card_label_text",
+   "fieldtype": "Color",
+   "label": "Label",
+   "default": "#4A5568"
+  },
+  {
+   "fieldname": "number_cards_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "card_bg_dark",
+   "fieldtype": "Color",
+   "label": "Background (dark)",
+   "default": "#121F31"
+  },
+  {
+   "fieldname": "card_border_dark",
+   "fieldtype": "Color",
+   "label": "Border (dark)",
+   "default": "#22324A"
+  },
+  {
+   "fieldname": "card_value_text_dark",
+   "fieldtype": "Color",
+   "label": "Value (dark)",
+   "default": "#F2F6FA"
+  },
+  {
+   "fieldname": "card_label_text_dark",
+   "fieldtype": "Color",
+   "label": "Label (dark)",
+   "default": "#93A1B5"
+  },
+  {
+   "fieldname": "inputs_section",
+   "fieldtype": "Section Break",
+   "label": "Form inputs"
+  },
+  {
+   "fieldname": "inputs_light_col",
+   "fieldtype": "Column Break",
+   "label": "Light mode"
+  },
+  {
+   "fieldname": "input_bg",
+   "fieldtype": "Color",
+   "label": "Background",
+   "default": "#FFFFFF"
+  },
+  {
+   "fieldname": "input_border",
+   "fieldtype": "Color",
+   "label": "Border",
+   "default": "#C9D2E0"
+  },
+  {
+   "fieldname": "input_text",
+   "fieldtype": "Color",
+   "label": "Text",
+   "default": "#18222F"
+  },
+  {
+   "fieldname": "input_label",
+   "fieldtype": "Color",
+   "label": "Label",
+   "default": "#4A5568"
+  },
+  {
+   "fieldname": "input_focus",
+   "fieldtype": "Color",
+   "label": "Focus ring",
+   "default": "#F26522"
+  },
+  {
+   "fieldname": "inputs_dark_col",
+   "fieldtype": "Column Break",
+   "label": "Dark mode"
+  },
+  {
+   "fieldname": "input_bg_dark",
+   "fieldtype": "Color",
+   "label": "Background (dark)",
+   "default": "#0E1A2B"
+  },
+  {
+   "fieldname": "input_border_dark",
+   "fieldtype": "Color",
+   "label": "Border (dark)",
+   "default": "#33425A"
+  },
+  {
+   "fieldname": "input_text_dark",
+   "fieldtype": "Color",
+   "label": "Text (dark)",
+   "default": "#DCE4EE"
+  },
+  {
+   "fieldname": "input_label_dark",
+   "fieldtype": "Color",
+   "label": "Label (dark)",
+   "default": "#93A1B5"
+  },
+  {
+   "fieldname": "input_focus_dark",
+   "fieldtype": "Color",
+   "label": "Focus ring (dark)",
+   "default": "#FF7A3D"
+  },
+  {
+   "fieldname": "advanced_tab",
+   "fieldtype": "Tab Break",
+   "label": "Advanced"
+  },
+  {
+   "fieldname": "transfer_section",
+   "fieldtype": "Section Break",
+   "label": "Export / Import",
+   "description": "Export downloads this theme as a .json file. Import applies a file exported from any ForceX site; only the settings in the file change, and anything skipped is listed."
+  },
+  {
+   "fieldname": "export_settings_btn",
+   "fieldtype": "Button",
+   "label": "Export settings"
+  },
+  {
+   "fieldname": "import_settings_btn",
+   "fieldtype": "Button",
+   "label": "Import settings"
+  },
+  {
+   "fieldname": "custom_section",
+   "fieldtype": "Section Break",
+   "label": "Custom CSS"
+  },
+  {
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Extra CSS",
+   "options": "CSS",
+   "description": "Added after the theme. Scope rules under html.fxh-on. '<' is not allowed."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-02 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SAS ForceX",
+ "name": "ForceX Theme Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 0,
+   "print": 0,
+   "read": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
