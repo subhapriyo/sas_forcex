@@ -130,9 +130,30 @@ class TestForceXThemeSettings(IntegrationTestCase):
 	def test_login_page_gets_title_and_head_snippet(self):
 		self.doc.login_title = "Welcome to ForceX"
 		self.doc.save()
-		ctx = theme.update_website_context({"path": "login", "head_include": ""})
-		self.assertIn("Welcome to ForceX", ctx["head_include"])
-		self.assertIn('id="fxh-theme-vars"', ctx["head_include"])
+		ctx = theme.update_website_context({"path": "login", "head_html": "<meta name=site>"})
+		self.assertIn("Welcome to ForceX", ctx["head_html"])
+		self.assertIn('id="fxh-theme-vars"', ctx["head_html"])
+		self.assertTrue(ctx["head_html"].startswith("<meta name=site>"))  # Website Settings HTML kept
+
+	def test_rendered_login_page_carries_the_theme(self):
+		# Render the real page: Frappe's login.html replaces the head_include block, so
+		# only a snippet in head_html (printed by includes/head.html) survives.
+		from frappe.utils import set_request
+		from frappe.website.serve import get_response_content
+
+		self.doc.login_box_position = "Right"
+		self.doc.login_background = "Colour"
+		self.doc.save()
+		user = frappe.session.user
+		frappe.set_user("Guest")  # a signed-in user is redirected away from /login
+		set_request(method="GET", path="/login")  # login.py reads the request
+		try:
+			html = get_response_content("login")
+		finally:
+			frappe.set_user(user)
+		self.assertIn('id="fxh-theme-vars"', html)
+		self.assertIn("fxh-login-right", html)
+		self.assertIn("fxh-login-bg-color", html)
 
 	# ---------------------------------------------------------------- export / import
 	def test_export_import_round_trip(self):

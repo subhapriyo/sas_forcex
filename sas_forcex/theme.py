@@ -54,11 +54,16 @@ def extend_bootinfo(bootinfo):
 
 
 def update_website_context(context):
-	"""hooks.py → update_website_context. Website pages get the theme; /login also gets its options."""
+	"""hooks.py → update_website_context. Website pages get the theme; /login also gets its options.
+
+	The snippet goes into head_html, not head_include: Frappe's login.html replaces the
+	head_include block with its own stylesheet, while templates/includes/head.html prints
+	head_html on every page. We append, so Website Settings → Head HTML is kept.
+	"""
 	path = (context.get("path") or "").strip("/")
 	snippet = engine.render_head_script(get_client_config(for_login=(path == "login")))
 	if snippet:
-		return {"head_include": (context.get("head_include") or "") + snippet}
+		return {"head_html": (context.get("head_html") or "") + snippet}
 
 
 def after_install():
