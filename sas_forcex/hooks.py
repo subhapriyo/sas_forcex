@@ -292,6 +292,10 @@ website_context = {
 	"favicon": "/assets/sas_forcex/images/forcex-erp-logo.svg",
 }
 
+# HRMS's standalone pages (/hr/roster, /hrms) bring their own HTML and load none of the
+# includes above, so the rebrand script is added to them on the way out.
+after_request = ["sas_forcex.theme.after_request"]
+
 # ForceX Theme Settings as an icon on the Desk apps screen, for System Managers only.
 # sequence_id 900 keeps it after the business apps and before Framework (1000).
 add_to_apps_screen = [

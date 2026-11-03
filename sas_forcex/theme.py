@@ -10,7 +10,10 @@ no Frappe import and is unit-tested on its own. This module only:
   * applies the ForceX branding to the Desk boot: ForceX ERP logo instead of ERPNext's,
     About / Support rows hidden from the Help menu (rules in forcex_theme/branding.py),
   * decides who sees the ForceX Theme icon on the apps screen (can_open_theme_settings),
-  * sets System Settings → App Name to "ForceX" (apply_app_name: install + patch),
+  * adds the rebrand script to HRMS's standalone pages, /hr and /hrms (after_request),
+  * writes the ForceX name into the brand settings that server-rendered text reads —
+    app name, authenticator issuer, OAuth resource, website footer (apply_brand_settings:
+    install + patch),
   * serves the settings page buttons: Clear Cache, Reset, Export, Import (preview + apply),
   * prefills the settings on install / migrate.
 
@@ -103,23 +106,66 @@ def update_website_context(context):
 		return {"head_html": (context.get("head_html") or "") + snippet}
 
 
+def after_request(response, request):
+	"""hooks.py → after_request: put the ForceX rebrand script into the HTML of HRMS's
+	standalone app pages (/hr/roster, /hrms), which load no Desk or website scripts and
+	would otherwise still say "Frappe HR". Successful HTML pages only; never raises."""
+	try:
+		if not engine.is_standalone_app_page(getattr(request, "path", None)):
+			return
+		if response.status_code != 200 or response.mimetype != "text/html" or response.direct_passthrough:
+			return
+		from frappe.utils.jinja_globals import bundled_asset
+
+		src = frappe.utils.escape_html(bundled_asset("forcex_rebrand.bundle.js"))
+		snippet = f'<script {engine.REBRAND_MARKER} src="{src}"></script>'
+		html = response.get_data(as_text=True)
+		branded = engine.inject_head(html, snippet)
+		if branded != html:
+			response.set_data(branded)
+	except Exception:
+		_log.exception("ForceX rebrand script could not be added to %s", getattr(request, "path", "?"))
+
+
 def after_install():
 	"""hooks.py → after_install: prefill a fresh site with the ForceX defaults and name."""
 	prefill_settings()
-	apply_app_name()
+	apply_brand_settings()
 
 
-def apply_app_name():
-	"""System Settings → App Name: "ERPNext" / "Frappe" becomes "ForceX".
+# ------------------------------------------------------------------ brand settings
+def _stored_brand_settings() -> dict:
+	"""{(doctype, field): stored value} for the BRAND_SETTINGS this site actually has."""
+	current = {}
+	for s in engine.BRAND_SETTINGS:
+		if frappe.db.exists("DocType", s.doctype) and frappe.get_meta(s.doctype).has_field(s.field):
+			current[(s.doctype, s.field)] = frappe.db.get_single_value(s.doctype, s.field)
+	return current
 
-	It is the name in browser tab titles and in server-rendered text (emails), which the
-	browser-side rebrand never sees. A name the site chose itself is kept. Written with
-	set_single_value so no other System Settings validation or side effect runs."""
-	current = frappe.db.get_single_value("System Settings", "app_name")
-	new = engine.rebranded_app_name(current)
-	if new != current:
-		frappe.db.set_single_value("System Settings", "app_name", new)
+
+def apply_brand_settings() -> list:
+	"""Write "ForceX" into the settings that still hold an upstream name (rules and the
+	reasons in forcex_theme/branding.py). Returns the settings that were changed.
+
+	Written with set_single_value so no other settings validation or side effect runs.
+	System Settings also keeps a copy of each value as a system default, which some code
+	reads directly, so those copies are brought in step too — also when only they are stale.
+	"""
+	changed = engine.brand_setting_updates(_stored_brand_settings())
+	for s in changed:
+		frappe.db.set_single_value(s.doctype, s.field, s.value)
+
+	defaults_synced = False
+	for s in engine.BRAND_SETTINGS:
+		if s.doctype == "System Settings":
+			stored = frappe.db.get_single_value(s.doctype, s.field)
+			if stored and frappe.db.get_default(s.field) != stored:
+				frappe.db.set_default(s.field, stored)
+				defaults_synced = True
+
+	if changed or defaults_synced:
 		clear_caches()
+	return changed
 
 
 # ------------------------------------------------------------------ settings page buttons

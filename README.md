@@ -65,6 +65,18 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
   that opens ForceX Theme Settings. Other users don't see it.
 - **About / Support** — *Hide About* and *Hide Support* (on by default) remove About and
   Frappe Support from the Help menu and the desktop page's profile menu.
+- **Names on screen** — `forcex_rebrand.bundle.js` turns Frappe / ERPNext / HRMS into
+  ForceX names in the browser, including the Desk's own menu lists (Workspace, Module
+  Def, ...). Business records are never rewritten. HRMS's standalone pages (`/hr/roster`,
+  `/hrms`) bring their own HTML, so an `after_request` hook adds the script to them.
+- **Names the server sends** — emails, browser tab titles, authenticator apps, the OAuth
+  consent screen and the website footer read a few settings, listed in `BRAND_SETTINGS`
+  (`forcex_theme/branding.py`). A patch and the install hook write "ForceX" into them,
+  but only while they still hold the upstream default; a name a site chose is kept.
+  Values code compares (e.g. "Frappe Mail", DocType names) are never renamed, and
+  Frappe's / ERPNext's own files are never edited (`bench update` would undo it).
+- **Upstream videos** — onboarding YouTube videos, YouTube/Vimeo players and thumbnails,
+  ERPNext's video images and Frappe's help video dialog are hidden.
 
 To brand another app's logo, add it to `APP_LOGOS` in `forcex_theme/branding.py` and put
 the SVG in `public/images/`.

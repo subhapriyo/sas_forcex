@@ -116,17 +116,103 @@ class TestHelpItems(unittest.TestCase):
 		self.assertEqual(br.desktop_menu_labels_to_hide(hide_about=False, hide_support=False), [])
 
 
-# ------------------------------------------------------------------------- app name
-class TestAppName(unittest.TestCase):
-	"""System Settings → App Name: shown in tab titles and server-rendered text (emails)."""
+# ------------------------------------------------------------------------- brand settings
+# Site settings that put "Frappe" / "ERPNext" in front of people from the server side
+# (tab titles, emails, authenticator apps, OAuth consent, website footer).
+SYS, WEB, OAUTH = "System Settings", "Website Settings", "OAuth Settings"
 
-	def test_upstream_names_become_forcex(self):
-		for upstream in ("ERPNext", "Frappe", "", None):
-			self.assertEqual(br.rebranded_app_name(upstream), "ForceX", repr(upstream))
 
-	def test_a_name_the_site_chose_is_kept(self):
-		for own in ("ForceX", "Sufalam ERP", "erpnext-custom"):
-			self.assertEqual(br.rebranded_app_name(own), own)
+def updates(current):
+	"""{(doctype, field): new value} for the given stored values."""
+	return {(s.doctype, s.field): s.value for s in br.brand_setting_updates(current)}
+
+
+class TestBrandSettings(unittest.TestCase):
+	def test_upstream_defaults_become_forcex(self):
+		current = {
+			(SYS, "app_name"): "ERPNext",
+			(SYS, "otp_issuer_name"): "Frappe Framework",
+			(WEB, "app_name"): "Frappe",
+			(WEB, "footer_powered"): "",
+			(OAUTH, "resource_name"): "Frappe Framework Application",
+		}
+		self.assertEqual(
+			updates(current),
+			{
+				(SYS, "app_name"): "ForceX",
+				(SYS, "otp_issuer_name"): "ForceX",
+				(WEB, "app_name"): "ForceX",
+				(WEB, "footer_powered"): "Powered by ForceX",
+				(OAUTH, "resource_name"): "ForceX",
+			},
+		)
+
+	def test_values_a_site_chose_are_kept(self):
+		# sil-dev: its own company name and a custom footer link
+		current = {
+			(WEB, "app_name"): "Sufalam Industries Limited",
+			(WEB, "footer_powered"): '<a href="#">ForceX</a>',
+			(SYS, "otp_issuer_name"): "Sufalam ERP",
+			(SYS, "app_name"): "ForceX",
+		}
+		self.assertEqual(updates(current), {})
+
+	def test_an_empty_website_name_is_left_to_fall_back_to_the_system_name(self):
+		# Frappe uses System Settings → App Name when the website one is empty
+		self.assertEqual(updates({(WEB, "app_name"): ""}), {})
+		self.assertEqual(updates({(WEB, "app_name"): None}), {})
+
+	def test_settings_missing_on_a_site_are_skipped(self):
+		self.assertEqual(updates({}), {})
+
+	def test_every_rule_says_where_people_see_it(self):
+		for s in br.BRAND_SETTINGS:
+			self.assertTrue(s.shown_in, f"{s.doctype}.{s.field}")
+			self.assertNotIn(s.value, s.replaces, "a rule must never re-apply to its own result")
+
+	def test_logic_values_are_never_rewritten(self):
+		# "Frappe Mail" (Email Account service) and the "Frappe" social-login provider are
+		# compared in code; only these named display settings are ever touched.
+		touched = {(s.doctype, s.field) for s in br.BRAND_SETTINGS}
+		self.assertTrue(
+			touched
+			<= {
+				(SYS, "app_name"),
+				(SYS, "otp_issuer_name"),
+				(WEB, "app_name"),
+				(WEB, "footer_powered"),
+				(OAUTH, "resource_name"),
+			}
+		)
+
+
+# ------------------------------------------------------------------------- standalone app pages
+# HRMS serves /hr/... (Roster) and /hrms (mobile app) as self-contained Vite pages that load
+# no ForceX script, so "Frappe HR" survived there. The rebrand script is added to their HTML.
+class TestStandaloneAppPages(unittest.TestCase):
+	def test_hr_pages_are_recognised(self):
+		for path in ("/hr", "/hr/", "/hr/roster/", "/hr/roster/month", "/hrms", "/hrms/home"):
+			self.assertTrue(br.is_standalone_app_page(path), path)
+
+	def test_other_pages_are_not(self):
+		for path in ("/desk/hr", "/hrx", "/home", "/login", "/app/hr-settings", "", None):
+			self.assertFalse(br.is_standalone_app_page(path), path)
+
+	def test_the_script_goes_just_before_head_closes(self):
+		html = "<html><head><title>Roster</title></head><body></body></html>"
+		out = br.inject_head(html, "<script data-forcex-rebrand></script>")
+		self.assertIn("<title>Roster</title><script data-forcex-rebrand></script></head>", out)
+
+	def test_injection_happens_once(self):
+		once = br.inject_head("<head></head>", "<script data-forcex-rebrand></script>")
+		self.assertEqual(br.inject_head(once, "<script data-forcex-rebrand></script>"), once)
+
+	def test_html_without_a_head_is_left_alone(self):
+		self.assertEqual(br.inject_head("<p>hi</p>", "<script></script>"), "<p>hi</p>")
+		self.assertEqual(br.inject_head("", "<script></script>"), "")
+
+	def test_head_tag_case_does_not_matter(self):
+		self.assertIn("x</HEAD>", br.inject_head("<HEAD></HEAD>", "x"))
 
 
 # ------------------------------------------------------------------------- icon files
@@ -171,6 +257,9 @@ class TestHooks(unittest.TestCase):
 	def test_only_people_who_can_open_the_settings_see_the_icon(self):
 		(entry,) = self.hooks.add_to_apps_screen
 		self.assertEqual(entry["has_permission"], "sas_forcex.theme.can_open_theme_settings")
+
+	def test_standalone_app_pages_get_the_rebrand_script(self):
+		self.assertIn("sas_forcex.theme.after_request", self.hooks.after_request)
 
 	def test_website_splash_and_favicon_use_the_forcex_erp_mark(self):
 		# ERPNext sets both to its own logo through the same hook; the last app wins.

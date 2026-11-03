@@ -171,18 +171,63 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		hidden = {r.item_label for r in help_rows if r.hidden}
 		self.assertFalse({"About", "Frappe Support"} & hidden)
 
-	def test_app_name_becomes_forcex_but_a_chosen_name_stays(self):
-		original = frappe.db.get_single_value("System Settings", "app_name")
+	def test_brand_settings_replace_upstream_names_and_keep_chosen_ones(self):
+		keep = {
+			("System Settings", "app_name"),
+			("System Settings", "otp_issuer_name"),
+			("Website Settings", "app_name"),
+		}
+		original = {(dt, f): frappe.db.get_single_value(dt, f) for dt, f in keep}
 		try:
 			frappe.db.set_single_value("System Settings", "app_name", "ERPNext")
-			theme.apply_app_name()
-			self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "ForceX")
+			frappe.db.set_single_value("System Settings", "otp_issuer_name", "Frappe Framework")
+			frappe.db.set_single_value("Website Settings", "app_name", "Sufalam ERP")
+			theme.apply_brand_settings()
 
-			frappe.db.set_single_value("System Settings", "app_name", "Sufalam ERP")
-			theme.apply_app_name()
-			self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "Sufalam ERP")
+			self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "ForceX")
+			self.assertEqual(frappe.db.get_single_value("System Settings", "otp_issuer_name"), "ForceX")
+			self.assertEqual(frappe.db.get_single_value("Website Settings", "app_name"), "Sufalam ERP")
+			# the system-default copies Frappe also reads are kept in step
+			self.assertEqual(frappe.db.get_default("app_name"), "ForceX")
+			self.assertEqual(frappe.db.get_default("otp_issuer_name"), "ForceX")
+			# applying again changes nothing
+			self.assertEqual(theme.apply_brand_settings(), [])
 		finally:
-			frappe.db.set_single_value("System Settings", "app_name", original)
+			for (dt, f), value in original.items():
+				frappe.db.set_single_value(dt, f, value)
+
+	def test_emails_and_the_login_page_carry_the_forcex_name(self):
+		from frappe.email.email_body import get_brand_name
+
+		web = frappe.db.get_single_value("Website Settings", "app_name")
+		try:
+			frappe.db.set_single_value("Website Settings", "app_name", "")
+			theme.apply_brand_settings()
+			frappe.clear_cache()
+			self.assertEqual(get_brand_name(), "ForceX")
+		finally:
+			frappe.db.set_single_value("Website Settings", "app_name", web)
+
+	# ---------------------------------------------------------------- HR app pages
+	def _page(self, path, html="<html><head><title>Roster</title></head><body></body></html>", **kw):
+		from werkzeug.wrappers import Response
+
+		response = Response(html, mimetype=kw.get("mimetype", "text/html"), status=kw.get("status", 200))
+		theme.after_request(response, frappe._dict(path=path))
+		return response.get_data(as_text=True)
+
+	def test_hr_roster_page_loads_the_rebrand_script(self):
+		from frappe.utils.jinja_globals import bundled_asset
+
+		html = self._page("/hr/roster/")
+		self.assertIn(bundled_asset("forcex_rebrand.bundle.js"), html)
+		self.assertIn("data-forcex-rebrand", html)
+
+	def test_other_responses_are_untouched(self):
+		plain = "<html><head></head></html>"
+		self.assertEqual(self._page("/desk", plain), plain)  # the Desk loads it already
+		self.assertEqual(self._page("/hr/roster/", '{"a": 1}', mimetype="application/json"), '{"a": 1}')
+		self.assertEqual(self._page("/hr/roster/", plain, status=404), plain)
 
 	def test_desk_splash_uses_the_forcex_erp_mark(self):
 		from frappe.website.doctype.website_settings.website_settings import get_website_settings

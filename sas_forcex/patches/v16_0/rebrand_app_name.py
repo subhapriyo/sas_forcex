@@ -1,12 +1,11 @@
-"""System Settings → App Name: "ERPNext" → "ForceX" on sites that already exist.
+"""ForceX name in the brand settings on sites that already exist (first version: App Name).
 
-ERPNext sets App Name to "ERPNext" when it is installed; it shows in browser tab titles
-and in emails. New sites get "ForceX" from sas_forcex.theme.after_install; this patch
-does the same once for existing sites. A name the site chose itself is kept.
+Kept under its original name so sites that already ran it are not affected; it now
+applies the full rule list, as rebrand_brand_settings does. Idempotent.
 """
 
-from sas_forcex.theme import apply_app_name
+from sas_forcex.theme import apply_brand_settings
 
 
 def execute():
-	apply_app_name()
+	apply_brand_settings()

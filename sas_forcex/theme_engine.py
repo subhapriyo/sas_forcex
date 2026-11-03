@@ -9,13 +9,19 @@ generator script or the tests.
 from sas_forcex.forcex_theme.branding import (
 	APP_LOGOS,
 	APP_NAME,
+	BRAND_SETTINGS,
 	FORCEX_ERP_LOGO,
+	REBRAND_MARKER,
+	STANDALONE_APP_PREFIXES,
 	THEME_SETTINGS_ICON,
+	BrandSetting,
 	brand_app_data,
+	brand_setting_updates,
 	desktop_menu_labels_to_hide,
 	hide_help_items,
+	inject_head,
+	is_standalone_app_page,
 	rebrand_url,
-	rebranded_app_name,
 )
 from sas_forcex.forcex_theme.client import build_config, render_head_script
 from sas_forcex.forcex_theme.colours import (
