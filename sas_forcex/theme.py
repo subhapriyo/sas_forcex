@@ -10,6 +10,7 @@ no Frappe import and is unit-tested on its own. This module only:
   * applies the ForceX branding to the Desk boot: ForceX ERP logo instead of ERPNext's,
     About / Support rows hidden from the Help menu (rules in forcex_theme/branding.py),
   * decides who sees the ForceX Theme icon on the apps screen (can_open_theme_settings),
+  * sets System Settings → App Name to "ForceX" (apply_app_name: install + patch),
   * serves the settings page buttons: Clear Cache, Reset, Export, Import (preview + apply),
   * prefills the settings on install / migrate.
 
@@ -103,8 +104,22 @@ def update_website_context(context):
 
 
 def after_install():
-	"""hooks.py → after_install: prefill a fresh site with the ForceX defaults."""
+	"""hooks.py → after_install: prefill a fresh site with the ForceX defaults and name."""
 	prefill_settings()
+	apply_app_name()
+
+
+def apply_app_name():
+	"""System Settings → App Name: "ERPNext" / "Frappe" becomes "ForceX".
+
+	It is the name in browser tab titles and in server-rendered text (emails), which the
+	browser-side rebrand never sees. A name the site chose itself is kept. Written with
+	set_single_value so no other System Settings validation or side effect runs."""
+	current = frappe.db.get_single_value("System Settings", "app_name")
+	new = engine.rebranded_app_name(current)
+	if new != current:
+		frappe.db.set_single_value("System Settings", "app_name", new)
+		clear_caches()
 
 
 # ------------------------------------------------------------------ settings page buttons

@@ -6,7 +6,9 @@
  * /login (web_include_js) — see hooks.py.
  *
  * Safety rules:
- *  - Never edits anything a user typed or a record value (see SKIP_SELECTOR).
+ *  - Never edits anything a user typed or a record value (see ALWAYS_SKIP and
+ *    RECORD_CELLS). One exception: list cells of the Desk's own navigation records
+ *    (Workspace, Sidebar, ... see LABEL_DOCTYPES), whose names are menu labels.
  *  - Case-sensitive, whole-word matching only, so technical identifiers such as
  *    "frappe.client" or "erpnext.selling" are left alone.
  *  - Idempotent: running twice never produces "ForceX ForceX ...", which also
@@ -81,23 +83,44 @@
 	// 3. What NOT to touch
 	// ---------------------------------------------------------------------
 	// Anything a user edits, code, and places where Frappe renders record
-	// values (form read-only values, list/report cells, comments, timeline).
+	// values (form read-only values, comments, timeline).
 	// Add data-forcex-skip to any element to opt it out explicitly.
-	const SKIP_SELECTOR = [
+	const ALWAYS_SKIP = [
 		"script", "style", "noscript", "code", "pre",
 		"input", "textarea", "select", "[contenteditable]", "[contenteditable='true']",
 		".ql-editor", ".ace_editor", ".CodeMirror", ".cm-editor",
 		".control-value", ".like-disabled-input", ".static-area",
-		".list-row-container .list-row-col",
-		".dt-body .dt-cell__content",
 		".timeline-content", ".comment-content", ".ql-editor-content",
 		"[data-forcex-skip]",
 	].join(",");
 
+	// List and report cells show record values, so they are skipped too...
+	const RECORD_CELLS = [".list-row-container .list-row-col", ".dt-body .dt-cell__content"].join(",");
+
+	// ...except on lists of these doctypes. Their records are the Desk's own menus
+	// (e.g. the "ERPNext Settings" workspace at /desk/build/workspace), so their
+	// names are labels people read, not business data. The record itself and its
+	// URL keep the upstream name; only what is shown changes.
+	const LABEL_DOCTYPES = new Set([
+		"Workspace", "Workspace Sidebar", "Sidebar", "Desktop Icon", "Module Def", "Dock",
+	]);
+
+	/** Doctype of the list/report view on screen (null elsewhere). */
+	function currentListDoctype() {
+		const list = window.cur_list;
+		if (list && list.doctype) return list.doctype;
+		const route = window.frappe && typeof frappe.get_route === "function" ? frappe.get_route() : [];
+		return route && route[0] === "List" ? route[1] : null;
+	}
+
 	// Attributes that show text to users (tooltips, placeholders, a11y labels).
 	const TEXT_ATTRS = ["title", "placeholder", "aria-label", "data-original-title", "alt"];
 
-	const isSkipped = (el) => !el || !!el.closest(SKIP_SELECTOR);
+	function isSkipped(el) {
+		if (!el || el.closest(ALWAYS_SKIP)) return true;
+		if (el.closest(RECORD_CELLS)) return !LABEL_DOCTYPES.has(currentListDoctype());
+		return false;
+	}
 
 	// ---------------------------------------------------------------------
 	// 4. DOM processing
@@ -254,6 +277,6 @@
 
 	// Allow unit tests in Node to import the pure function.
 	if (typeof module !== "undefined" && module.exports) {
-		module.exports = { rebrandText };
+		module.exports = { rebrandText, isSkipped };
 	}
 })();

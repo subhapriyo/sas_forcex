@@ -116,6 +116,19 @@ class TestHelpItems(unittest.TestCase):
 		self.assertEqual(br.desktop_menu_labels_to_hide(hide_about=False, hide_support=False), [])
 
 
+# ------------------------------------------------------------------------- app name
+class TestAppName(unittest.TestCase):
+	"""System Settings → App Name: shown in tab titles and server-rendered text (emails)."""
+
+	def test_upstream_names_become_forcex(self):
+		for upstream in ("ERPNext", "Frappe", "", None):
+			self.assertEqual(br.rebranded_app_name(upstream), "ForceX", repr(upstream))
+
+	def test_a_name_the_site_chose_is_kept(self):
+		for own in ("ForceX", "Sufalam ERP", "erpnext-custom"):
+			self.assertEqual(br.rebranded_app_name(own), own)
+
+
 # ------------------------------------------------------------------------- icon files
 class TestIconFiles(unittest.TestCase):
 	def check_svg(self, url):

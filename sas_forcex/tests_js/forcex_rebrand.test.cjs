@@ -15,17 +15,28 @@ const vm = require("node:vm");
 const BUNDLE = path.join(__dirname, "..", "public", "js", "forcex_rebrand.bundle.js");
 
 /** Load the bundle as Node would, with just enough browser globals for it to boot. */
-function loadRebrand() {
+function loadRebrand(globals = {}) {
   const listeners = [];
   const sandbox = {
     module: { exports: {} },
     document: { readyState: "loading", addEventListener: (type, fn) => listeners.push(type) },
+    ...globals,
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(BUNDLE, "utf8"), sandbox);
-  return { rebrandText: sandbox.module.exports.rebrandText, forcex: sandbox.forcex, listeners };
+  const { rebrandText, isSkipped } = sandbox.module.exports;
+  return { rebrandText, isSkipped, forcex: sandbox.forcex, listeners, sandbox };
 }
+
+/** A fake element that sits inside the given CSS selectors (enough for el.closest). */
+function elementInside(...selectors) {
+  return {
+    closest: (list) => (list.split(",").some((s) => selectors.includes(s.trim())) ? {} : null),
+  };
+}
+const LIST_CELL = ".list-row-container .list-row-col";
+const REPORT_CELL = ".dt-body .dt-cell__content";
 
 const { rebrandText } = loadRebrand();
 
@@ -76,6 +87,47 @@ test("running twice changes nothing more", () => {
 
 test("never produces a doubled brand", () => {
   for (const [input] of CASES) assert.ok(!rebrandText(rebrandText(input)).includes("ForceX ForceX"));
+});
+
+/* ---------- record cells: only the Desk's own navigation records ------------------ */
+// The Workspace list (/desk/build/workspace) shows records such as "ERPNext Settings";
+// their names are menu labels, not business data, so they are rebranded too.
+for (const doctype of ["Workspace", "Workspace Sidebar", "Sidebar", "Desktop Icon", "Module Def", "Dock"]) {
+  test(`list cells of ${doctype} are rebranded`, () => {
+    const { isSkipped } = loadRebrand({ cur_list: { doctype } });
+    assert.equal(isSkipped(elementInside(LIST_CELL)), false);
+    assert.equal(isSkipped(elementInside(REPORT_CELL)), false);
+  });
+}
+
+test("list cells of business records are never touched", () => {
+  for (const doctype of ["Sales Invoice", "Customer", "Item"]) {
+    const { isSkipped } = loadRebrand({ cur_list: { doctype } });
+    assert.equal(isSkipped(elementInside(LIST_CELL)), true, doctype);
+  }
+});
+
+test("outside a list view, record cells stay untouched", () => {
+  const { isSkipped } = loadRebrand();
+  assert.equal(isSkipped(elementInside(LIST_CELL)), true);
+});
+
+test("the list doctype can come from the route when cur_list is not set yet", () => {
+  const frappe = { get_route: () => ["List", "Workspace", "List"] };
+  const { isSkipped } = loadRebrand({ frappe });
+  assert.equal(isSkipped(elementInside(LIST_CELL)), false);
+});
+
+test("inputs and editors stay untouched even inside a Workspace list", () => {
+  const { isSkipped } = loadRebrand({ cur_list: { doctype: "Workspace" } });
+  assert.equal(isSkipped(elementInside(LIST_CELL, "input")), true);
+  assert.equal(isSkipped(elementInside(LIST_CELL, "[data-forcex-skip]")), true);
+});
+
+test("ordinary page text is rebranded and a missing element is skipped", () => {
+  const { isSkipped } = loadRebrand();
+  assert.equal(isSkipped(elementInside()), false);
+  assert.equal(isSkipped(null), true);
 });
 
 /* ---------- boot behaviour ------------------------------------------------------- */

@@ -171,6 +171,19 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		hidden = {r.item_label for r in help_rows if r.hidden}
 		self.assertFalse({"About", "Frappe Support"} & hidden)
 
+	def test_app_name_becomes_forcex_but_a_chosen_name_stays(self):
+		original = frappe.db.get_single_value("System Settings", "app_name")
+		try:
+			frappe.db.set_single_value("System Settings", "app_name", "ERPNext")
+			theme.apply_app_name()
+			self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "ForceX")
+
+			frappe.db.set_single_value("System Settings", "app_name", "Sufalam ERP")
+			theme.apply_app_name()
+			self.assertEqual(frappe.db.get_single_value("System Settings", "app_name"), "Sufalam ERP")
+		finally:
+			frappe.db.set_single_value("System Settings", "app_name", original)
+
 	def test_desk_splash_uses_the_forcex_erp_mark(self):
 		from frappe.website.doctype.website_settings.website_settings import get_website_settings
 

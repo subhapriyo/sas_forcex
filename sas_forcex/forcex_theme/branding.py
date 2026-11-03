@@ -8,6 +8,9 @@ for app data the Desk fetches again after boot.
     `app_logo_url`. Frappe copies that into `frappe.boot.app_data`, which feeds the
     apps screen, the app switcher and the dock rail, so swapping it there swaps it
     everywhere the Desk draws the app.
+  * App name — System Settings → App Name ("ERPNext" once ERPNext is installed) is
+    used in tab titles and server-rendered text such as emails, which the browser-side
+    rebrand cannot reach, so it is set to "ForceX" in the database.
   * Help menu — Frappe's standard Help rows "About" and "Frappe Support" (Navbar
     Settings). Rows are recognised by what they do, so a renamed or translated label
     still matches, and rows a site added itself are never touched.
@@ -49,6 +52,18 @@ def brand_app_data(app_data) -> list[dict]:
 			app = {**app, "app_logo_url": [logo] * len(current) if isinstance(current, list) else logo}
 		out.append(app)
 	return out
+
+
+# ------------------------------------------------------------------------- app name
+APP_NAME = "ForceX"
+# Values the upstream apps set (or leave empty); anything else was chosen by the site.
+_UPSTREAM_APP_NAMES = ("ERPNext", "Frappe", "", None)
+
+
+def rebranded_app_name(current: str | None) -> str | None:
+	"""System Settings → App Name to store: "ForceX" instead of an upstream name;
+	a name the site picked itself (e.g. "Sufalam ERP") is kept."""
+	return APP_NAME if current in _UPSTREAM_APP_NAMES else current
 
 
 # ------------------------------------------------------------------------- Help menu
