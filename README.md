@@ -65,6 +65,8 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
   switcher and on the dock; pages that draw an upstream logo themselves (e.g. the HR
   Roster) get it swapped in the browser. The ERP mark is also the Desk splash and website
   favicon, unless Website Settings sets its own. Other apps, and our own, keep their logos.
+  Only on sites that want them: *Navigation → Use ForceX app logos* (off by default), and
+  always where SAS Fortuna is installed; everywhere else the upstream logos stay.
 - **ForceX Theme icon** — a ForceX Theme tile on the apps screen opens ForceX Theme
   Settings. Administrator always sees it; other System Managers while *Navigation → Show
   ForceX Theme icon* is on (default). Hiding it doesn't change who may open the settings.
