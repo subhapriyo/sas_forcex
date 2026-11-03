@@ -90,13 +90,16 @@
 		const ui = frappe.ui;
 		const Base = ui && ui.Dropdown;
 		if (!labels || !labels.length || !Base || Base.__fxhWrapped) return;
-		// Rows arrive already translated, so match the label and its translation.
+		// Rows arrive already passed through __(), which by then also carries the ForceX
+		// rebrand ("Frappe Support" → "ForceX Support"; forcex_rebrand loads after this
+		// file). So the labels are looked up when the menu is built, not at load time.
 		const translate = (s) => (typeof __ === "function" ? __(s) : s);
-		const drop = new Set(labels.flatMap((label) => [label, translate(label)]));
+		const labelsToDrop = () => new Set(labels.flatMap((label) => [label, translate(label)]));
 
 		class ForceXDropdown extends Base {
 			constructor(opts) {
 				if (opts && isDesktopAvatar(opts.trigger) && Array.isArray(opts.options)) {
+					const drop = labelsToDrop();
 					opts = { ...opts, options: opts.options.filter((row) => !drop.has(row && row.label)) };
 				}
 				super(opts);

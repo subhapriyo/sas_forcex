@@ -20,13 +20,17 @@ function loadRebrand(globals = {}) {
   const sandbox = {
     module: { exports: {} },
     document: { readyState: "loading", addEventListener: (type, fn) => listeners.push(type) },
+    URL, // a browser global that vm sandboxes do not provide
     ...globals,
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(BUNDLE, "utf8"), sandbox);
-  const { rebrandText, isSkipped } = sandbox.module.exports;
-  return { rebrandText, isSkipped, forcex: sandbox.forcex, listeners, sandbox };
+  const { rebrandText, isSkipped, hidingCss, muteUpstreamVideos, unwrapDocLinks } = sandbox.module.exports;
+  return {
+    rebrandText, isSkipped, hidingCss, muteUpstreamVideos, unwrapDocLinks,
+    forcex: sandbox.forcex, listeners, sandbox,
+  };
 }
 
 /** A fake element that sits inside the given CSS selectors (enough for el.closest). */
@@ -128,6 +132,93 @@ test("ordinary page text is rebranded and a missing element is skipped", () => {
   const { isSkipped } = loadRebrand();
   assert.equal(isSkipped(elementInside()), false);
   assert.equal(isSkipped(null), true);
+});
+
+/* ---------- upstream videos and video images ------------------------------------- */
+// What the hiding stylesheet must cover: where Frappe / ERPNext show YouTube media.
+const MUST_HIDE = [
+  ".onboarding-step-media", // onboarding step: YouTube thumbnail + player column
+  ".onboarding-video",
+  ".onboarding-video-player",
+  ".help-video-link", // workspace link cards that open a YouTube help video
+  '.video-player[data-plyr-provider="youtube"]', // Frappe's help video dialog
+  'iframe[src*="youtube.com"]',
+  'iframe[src*="youtube-nocookie.com"]',
+  'iframe[src*="vimeo.com"]',
+  'img[src*="ytimg.com"]', // YouTube thumbnails
+  'img[src*="img.youtube.com"]',
+  'img[src*="erpnext-video-placeholder"]', // ERPNext's own video images
+  'img[src*="YouTube-icon"]',
+  'a[href*="youtube.com"]',
+  'a[href*="youtu.be"]',
+  'a[href*="frappe.io"]', // existing: links to upstream sites
+  'a[href*="erpnext.com"]',
+];
+
+test("the hiding stylesheet covers every upstream video and video image", () => {
+  const { hidingCss } = loadRebrand();
+  const css = hidingCss();
+  for (const selector of MUST_HIDE) assert.ok(css.includes(selector), `missing ${selector}`);
+  assert.match(css, /display:\s*none\s*!important/);
+});
+
+test("ordinary images and iframes are never hidden", () => {
+  const { hidingCss } = loadRebrand();
+  const selectors = hidingCss().split("{")[0].split(",").map((s) => s.trim());
+  for (const bare of ["img", "iframe", "video", "a"]) assert.ok(!selectors.includes(bare), `bare ${bare}`);
+});
+
+test("Frappe's help video dialog is switched off", () => {
+  const shown = [];
+  const help = { youtube_id: { Item: "abc" }, show_video: (id) => shown.push(id), has_help: () => true };
+  const { muteUpstreamVideos } = loadRebrand({ frappe: { help } });
+  muteUpstreamVideos();
+  help.show_video("https://youtu.be/Swos5xEU0w0");
+  help.show("Item");
+  assert.equal(shown.length, 0);
+  assert.equal(help.has_help("Item"), false);
+});
+
+/* ---------- docs links inside onboarding text ----------------------------------- */
+// "See [Chart of Accounts](https://docs.frappe.io/...)." — hiding the link left "See .",
+// so inside onboarding step descriptions the link becomes plain text instead.
+function fakeLink(href, text) {
+  return { href, textContent: text, replacedWith: null, replaceWith(node) { this.replacedWith = node; } };
+}
+function fakeRoot(links) {
+  return { querySelectorAll: (sel) => (sel.includes(".onboarding-step-description") ? links : []) };
+}
+const textDoc = { createTextNode: (t) => ({ text: t }) };
+
+test("upstream docs links in onboarding text become plain text", () => {
+  const { unwrapDocLinks, sandbox } = loadRebrand();
+  sandbox.document = textDoc;
+  const docs = fakeLink("https://docs.frappe.io/erpnext/user/manual/en/chart-of-accounts", "Chart of Accounts");
+  const hr = fakeLink("https://docs.frappe.io/hr/appraisal", "Appraisal");
+  unwrapDocLinks(fakeRoot([docs, hr]));
+  assert.equal(docs.replacedWith.text, "Chart of Accounts");
+  assert.equal(hr.replacedWith.text, "Appraisal");
+});
+
+test("links to the site's own pages stay links", () => {
+  const { unwrapDocLinks, sandbox } = loadRebrand();
+  sandbox.document = textDoc;
+  const own = fakeLink("/desk/account", "Account");
+  const other = fakeLink("https://example.com/help", "Help");
+  unwrapDocLinks(fakeRoot([own, other]));
+  assert.equal(own.replacedWith, null);
+  assert.equal(other.replacedWith, null);
+});
+
+test("unwrapping is harmless on text nodes and empty input", () => {
+  const { unwrapDocLinks } = loadRebrand();
+  assert.doesNotThrow(() => unwrapDocLinks(null));
+  assert.doesNotThrow(() => unwrapDocLinks({ nodeValue: "text" }));
+});
+
+test("muting videos is harmless outside the Desk (no frappe.help)", () => {
+  const { muteUpstreamVideos } = loadRebrand();
+  assert.doesNotThrow(() => muteUpstreamVideos());
 });
 
 /* ---------- boot behaviour ------------------------------------------------------- */

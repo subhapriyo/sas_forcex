@@ -190,6 +190,16 @@ test("About and Frappe Support are dropped from the desktop avatar menu", () => 
   assert.equal(labels(FakeDropdown.built[0]), "Edit Profile,Logout");
 });
 
+test("rows renamed by the rebrand layer after load are still dropped", () => {
+  // forcex_rebrand loads after this bundle and wraps __(), so by the time the desktop page
+  // builds its menu "Frappe Support" reads "ForceX Support".
+  const { frappe, sandbox } = load(ON({ hide_desktop_menu: ["About", "Frappe Support"] }));
+  sandbox.__ = (s) => s.replace("Frappe", "ForceX");
+  const menu = [{ label: "Edit Profile" }, { label: "ForceX Support" }, { label: "Logout" }];
+  new frappe.ui.Dropdown({ trigger: jq("desktop-avatar"), options: menu });
+  assert.equal(labels(FakeDropdown.built[0]), "Edit Profile,Logout");
+});
+
 test("other dropdowns keep every row", () => {
   const { frappe } = load(ON({ hide_desktop_menu: ["About"] }));
   new frappe.ui.Dropdown({ trigger: jq("some-other-menu"), options: AVATAR_MENU });
