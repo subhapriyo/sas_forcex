@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" role="img" aria-labelledby="forcex-helpdesk-title">
 	<title id="forcex-helpdesk-title">ForceX Helpdesk</title>
-	<!-- ForceX app logo family: 100x100 tile (#0369A1), white glyph, ForceX accent. -->
-	<!-- Glyph: a headset with an orange microphone. -->
-	<rect width="100" height="100" rx="28.57" fill="#0369A1"/>
-	<path d="M26 56v-6a24 24 0 0 1 48 0v6" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="21" y="52" width="13" height="20" rx="5" fill="#FFFFFF"/><rect x="66" y="52" width="13" height="20" rx="5" fill="#FFFFFF"/><path d="M72 72c0 6-6 9-14 9" stroke="#F26522" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="55" cy="81" r="5" fill="#F26522"/>
+	<!-- ForceX letter mark after the ERP icon: "HD" in white plus the ForceX X; tile #F26522, accent #0F3870. -->
+	<rect width="100" height="100" rx="28.57" fill="#F26522"/>
+	<path d="M15 18h9v12h10V18h9v32h-9V38H24v12h-9V18Z" fill="#FFFFFF"/><path d="M47 18h7c10 0 15 7 15 16s-5 16-15 16h-7V18Zm9 8v16c3.5 0 5-3 5-8s-1.5-8-5-8Z" fill="#FFFFFF"/>
+	<path d="M51.5 50.5 58.5 43.5 85 70 78 77 51.5 50.5Z" fill="#FFFFFF"/><path d="M78 43.5 85 50.5 58.5 77 51.5 70 78 43.5Z" fill="#0F3870"/>
 </svg>

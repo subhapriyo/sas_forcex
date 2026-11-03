@@ -335,6 +335,24 @@ class TestIconFiles(unittest.TestCase):
 			with self.subTest(url=url):
 				self.check_svg(url)
 
+	def test_app_icons_stay_in_the_forcex_palette(self):
+		# Primary: ForceX navy and orange (as in the ERP mark). Secondary, for accents or one
+		# tile: deep navy and sky. White for the glyphs. Nothing else.
+		navy, orange, deep, sky, white = "#0F3870", "#F26522", "#0B1C33", "#3B82C4", "#FFFFFF"
+		for url in set(br.APP_LOGOS.values()):
+			with self.subTest(url=url):
+				root = ET.parse(asset_path(url)).getroot()
+				colours = {
+					el.get(attr).upper()
+					for el in root.iter()
+					for attr in ("fill", "stroke")
+					if (el.get(attr) or "").startswith("#")
+				}
+				self.assertLessEqual(colours, {navy, orange, deep, sky, white})
+				tile = next(el for el in root if el.tag.endswith("rect"))
+				self.assertIn(tile.get("fill").upper(), {navy, orange, deep}, "tile colour")
+				self.assertTrue({navy, orange} & colours, "uses a primary ForceX colour")
+
 	def test_theme_settings_icon_exists_and_is_valid(self):
 		self.check_svg(br.THEME_SETTINGS_ICON)
 
