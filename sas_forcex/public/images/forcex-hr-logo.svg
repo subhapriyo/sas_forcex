@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" role="img" aria-labelledby="forcex-hr-title">
+	<title id="forcex-hr-title">ForceX HR</title>
+	<!-- ForceX app logo family: 100x100 tile (#0B7A75), white glyph, ForceX accent. -->
+	<!-- Glyph: a person (head + shoulders) with an orange badge. -->
+	<rect width="100" height="100" rx="28.57" fill="#0B7A75"/>
+	<circle cx="50" cy="38" r="13" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M26 76c3-13 13-20 24-20s21 7 24 20" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="74" cy="30" r="7" fill="#F26522"/>
+</svg>

@@ -215,6 +215,9 @@ class TestBuildConfig(unittest.TestCase):
 		self.assertTrue(te.build_config({"hide_help": 1})["hide_help"])
 		self.assertFalse(te.build_config({"hide_help": 0})["hide_help"])
 
+	def test_theme_icon_is_shown_by_default(self):
+		self.assertEqual(te.DEFAULTS["show_theme_icon"], 1)
+
 	def test_about_and_support_are_hidden_by_default(self):
 		self.assertEqual((te.DEFAULTS["hide_about"], te.DEFAULTS["hide_support"]), (1, 1))
 		cfg = te.build_config({})

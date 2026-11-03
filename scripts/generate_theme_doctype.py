@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT))
 from sas_forcex import theme_engine as te
 
 DOCTYPE_DIR = ROOT / "sas_forcex" / "sas_forcex" / "doctype"
-MODIFIED = "2026-11-03 12:00:00.000000"  # bump when the schema changes so migrate re-syncs it
+MODIFIED = "2026-11-03 18:00:00.000000"  # bump when the schema changes so migrate re-syncs it
 
 
 def settings_doctype():

@@ -4,10 +4,16 @@ Plain Python like the rest of this package: it decides, sas_forcex/theme.py appl
 the Desk boot, and public/js/forcex_harbour.bundle.js repeats the logo swap in the browser
 for app data the Desk fetches again after boot.
 
-  * App logos — ERPNext ships its blue "E" mark through `add_to_apps_screen` and
-    `app_logo_url`. Frappe copies that into `frappe.boot.app_data`, which feeds the
-    apps screen, the app switcher and the dock rail, so swapping it there swaps it
-    everywhere the Desk draws the app.
+  * App logos — every upstream app ships its own mark through `add_to_apps_screen` and
+    `app_logo_url` (ERPNext's blue "E", Frappe HR's green tile, ...). Frappe copies that
+    into `frappe.boot.app_data`, which feeds the apps screen, the app switcher and the
+    dock rail, so swapping it there swaps it everywhere the Desk draws the app. Pages
+    that draw an upstream logo themselves get it swapped in the browser instead: an
+    <img> by its URL (LOGO_URL_SWAPS), an inline <svg> by its look (INLINE_LOGOS).
+    Only on sites that want them (logos_enabled): the 'Use ForceX app logos' option,
+    or always where SAS Fortuna is installed. Elsewhere every upstream logo stays.
+  * ForceX Theme icon — who sees the ForceX Theme tile on the apps screen
+    (theme_icon_visible: Administrator always; System Managers while the option is on).
   * Brand settings — a few site settings put "Frappe" / "ERPNext" in front of people
     from the server side, where the browser-side rebrand (forcex_rebrand.bundle.js)
     cannot reach: tab titles, emails, authenticator apps, the OAuth consent screen and
@@ -31,22 +37,96 @@ from dataclasses import dataclass
 
 # ------------------------------------------------------------------------- icon files
 # Served from sas_forcex/public/images (bench build links them under /assets/sas_forcex/).
-FORCEX_ERP_LOGO = "/assets/sas_forcex/images/forcex-erp-logo.svg"
-THEME_SETTINGS_ICON = "/assets/sas_forcex/images/forcex-theme-settings.svg"
+# All app logos share one design: a 100x100 rounded tile, a white glyph, a ForceX accent.
+_IMAGES = "/assets/sas_forcex/images"
+FORCEX_ERP_LOGO = f"{_IMAGES}/forcex-erp-logo.svg"
+THEME_SETTINGS_ICON = f"{_IMAGES}/forcex-theme-settings.svg"
 
-# app_name → the ForceX logo shown for it. Sent to the browser as-is.
-APP_LOGOS: dict[str, str] = {"erpnext": FORCEX_ERP_LOGO}
-
-# Upstream image URLs that should never be shown (used for single URLs, e.g. splash).
-_REPLACED_URLS: dict[str, str] = {
-	"/assets/erpnext/images/erpnext-logo.svg": FORCEX_ERP_LOGO,
-	"/assets/erpnext/images/erpnext-favicon.svg": FORCEX_ERP_LOGO,
+# app_name → the ForceX logo shown for it (sent to the browser as-is). Only the upstream
+# apps that have a Desk icon on our sites (sil-dev, fleeto) are listed; any other app,
+# and our own apps (FLEETO, SAS Fortuna, ...), keep the logo they ship. To add one, see
+# the README (Branding).
+APP_LOGOS: dict[str, str] = {
+	"erpnext": FORCEX_ERP_LOGO,
+	"hrms": f"{_IMAGES}/forcex-hr-logo.svg",
+	"india_compliance": f"{_IMAGES}/forcex-india-compliance-logo.svg",
+	"frappe": f"{_IMAGES}/forcex-framework-logo.svg",
+	"helpdesk": f"{_IMAGES}/forcex-helpdesk-logo.svg",
 }
+
+# The image files each upstream app uses for its logo (from its hooks.py), so pages that
+# show one as an <img> get the ForceX logo of the same app.
+UPSTREAM_LOGOS: dict[str, tuple[str, ...]] = {
+	"erpnext": ("/assets/erpnext/images/erpnext-logo.svg", "/assets/erpnext/images/erpnext-favicon.svg"),
+	"hrms": ("/assets/hrms/images/frappe-hr-logo.svg",),
+	"india_compliance": ("/assets/india_compliance/images/india-compliance.svg",),
+	"frappe": ("/assets/frappe/images/frappe-framework-logo.svg",),
+	"helpdesk": ("/assets/helpdesk/desk/favicon.svg",),
+}
+
+# upstream logo URL → ForceX logo URL (derived, so the two maps can never disagree)
+LOGO_URL_SWAPS: dict[str, str] = {url: APP_LOGOS[app] for app, urls in UPSTREAM_LOGOS.items() for url in urls}
+
+# Logos drawn as inline <svg> (no URL to swap). Each is recognised by a CSS selector for
+# its look and painted over with the ForceX logo in the browser (forcex_rebrand.bundle.js).
+INLINE_LOGOS: tuple[dict, ...] = (
+	# HRMS's Vue pages (Roster at /hr, the mobile app at /hrms): FrappeHRLogo.vue, a
+	# 117x117 mint (#A1EEC9) tile.
+	{"selector": 'svg[viewBox="0 0 117 117"]:has(path[fill="#A1EEC9"])', "logo": APP_LOGOS["hrms"]},
+)
 
 
 def rebrand_url(url: str | None) -> str | None:
-	"""An upstream ERPNext image URL → the ForceX one; anything else unchanged."""
-	return _REPLACED_URLS.get(url, url) if url else url
+	"""An upstream app's logo URL → the ForceX one; anything else unchanged."""
+	return LOGO_URL_SWAPS.get(url, url) if url else url
+
+
+# Apps whose sites always get the ForceX logos, whatever the option says.
+LOGO_APPS = ("sas_fortuna",)
+
+
+def logos_enabled(option, installed_apps) -> bool:
+	"""Should this site show ForceX app logos? Yes when 'Use ForceX app logos' is ticked,
+	or when one of LOGO_APPS is installed (checked live, so installing it later counts)."""
+	return bool(option) or any(app in (installed_apps or ()) for app in LOGO_APPS)
+
+
+def brand_config(logos: bool) -> dict:
+	"""What the browser needs to brand logos: frappe.boot.forcex_brand on the Desk,
+	window.forcex_brand on standalone app pages (see sas_forcex.theme.after_request).
+	With logos off the maps are empty, so the browser swaps nothing."""
+	if not logos:
+		return {"app_logos": {}, "logo_swaps": {}, "inline_logos": []}
+	return {
+		"app_logos": dict(APP_LOGOS),
+		"logo_swaps": dict(LOGO_URL_SWAPS),
+		"inline_logos": [dict(i) for i in INLINE_LOGOS],
+	}
+
+
+def brand_site_images(context) -> dict:
+	"""ForceX versions of the Desk splash and website favicon, when they are still an
+	upstream app's logo (ERPNext sets both through its website_context hook). A site's own
+	images from Website Settings are kept. Returns only what changes."""
+	out = {}
+	for key in ("splash_image", "favicon"):
+		value = context.get(key)
+		if value and rebrand_url(value) != value:
+			out[key] = rebrand_url(value)
+	return out
+
+
+# ------------------------------------------------------------------------- ForceX Theme icon
+def theme_icon_visible(user: str, roles, show: bool) -> bool:
+	"""Should this user see the ForceX Theme tile on the apps screen?
+
+	Administrator always does, so the settings can never be lost from view. Other
+	System Managers (the only role that may open the settings) see it while the
+	'Show ForceX Theme icon' option is on. Everyone else never does.
+	"""
+	if user == "Administrator":
+		return True
+	return bool(show) and "System Manager" in (roles or ())
 
 
 def brand_app_data(app_data) -> list[dict]:

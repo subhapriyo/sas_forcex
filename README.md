@@ -24,13 +24,14 @@ Product features live in their own apps, e.g. **sas_forcex_fleeto** (FLEETO Serv
 | `ForceX Theme Role` (DocType) | Child table: roles that have the search bar hidden |
 | `public/css/forcex_harbour.bundle.css` | Maps the `--fxh-*` tokens onto Frappe v16 tokens and selectors |
 | `public/js/forcex_harbour.bundle.js` | Applies the theme and brand on Desk load (classes, tokens, light/dark, Help row, app logos, avatar menu) |
-| `public/images/` | `forcex-erp-logo.svg` (replaces the ERPNext logo), `forcex-theme-settings.svg` (apps-screen icon) |
+| `public/images/` | ForceX app logos (`forcex-*-logo.svg`) and the ForceX Theme apps-screen icon |
 | `public/css/forcex_components.bundle.css` | `.fx-*` design system used by the `forcex.ui` helpers |
 | `public/js/forcex_ui.bundle.js` | Generic `forcex.ui` component kit + `themeForms()` |
 | `public/js/forcex_rebrand.bundle.js` | Replaces Frappe / ERPNext / HRMS names with ForceX names in the UI |
 | `public/css/forcex_desk_theme.bundle.css` | Legacy palette, no longer loaded |
 | `patches/v16_0/prefill_forcex_theme_settings.py` | Fills the settings with ForceX defaults and migrates old values |
-| `patches/v16_0/hide_about_and_support.py` | Switches on Hide About / Hide Support on existing sites |
+| `patches/v16_0/hide_about_and_support.py`, `show_theme_icon.py` | Switch on new default-on options on existing sites |
+| `patches/v16_0/rebrand_brand_settings.py` | Writes "ForceX" into the brand settings on existing sites |
 | `scripts/generate_theme_doctype.py` | Regenerates the DocType JSON and the default tokens in the stylesheet |
 | `sas_forcex/tests/`, `tests_js/` | Python and Node unit tests |
 
@@ -42,7 +43,7 @@ Open **ForceX Theme Settings** (`/app/forcex-theme-settings`, System Manager onl
 | --- | --- |
 | General | Enable / disable, appearance (follow user, always light, always dark), font, corner style, brand primary and accent colours |
 | Login Page | Title (max 30 chars), box position (Default / Left / Right), light or dark login, fade-in animation, accent bar, footer, background colour or image, box and button colours, optional side panel |
-| Navigation | Page header and sidebar colours (text and icons follow them), active item, hide Help, hide About, hide Support, hide search for selected roles |
+| Navigation | Page header and sidebar colours (text and icons follow them), active item, show the ForceX Theme icon, hide Help, hide About, hide Support, hide search for selected roles |
 | Buttons | Primary and secondary: background, text, hover (and border for secondary) |
 | Body | Page and content backgrounds, text, muted text, borders, hide the list / form side panel |
 | Tables & Lists | Header row, rows, row hover, hide likes & comment counts, cards and wrapping on phones |
@@ -58,11 +59,15 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
 
 ### Branding
 
-- **ForceX ERP logo** — ERPNext's blue "E" is replaced by the ForceX ERP mark on the apps
-  screen, in the app switcher and on the dock, plus the Desk splash and the website favicon.
-  A site's own splash or favicon in Website Settings still wins.
-- **ForceX Theme icon** — System Managers get a ForceX Theme tile on the Desk apps screen
-  that opens ForceX Theme Settings. Other users don't see it.
+- **ForceX app logos** — the upstream apps used on our sites get a ForceX logo in one
+  family (100x100 tile, white glyph, ForceX accent; files in `public/images/`): ERP, HR,
+  India Compliance, Framework and Helpdesk. They show on the apps screen, in the app
+  switcher and on the dock; pages that draw an upstream logo themselves (e.g. the HR
+  Roster) get it swapped in the browser. The ERP mark is also the Desk splash and website
+  favicon, unless Website Settings sets its own. Other apps, and our own, keep their logos.
+- **ForceX Theme icon** — a ForceX Theme tile on the apps screen opens ForceX Theme
+  Settings. Administrator always sees it; other System Managers while *Navigation → Show
+  ForceX Theme icon* is on (default). Hiding it doesn't change who may open the settings.
 - **About / Support** — *Hide About* and *Hide Support* (on by default) remove About and
   Frappe Support from the Help menu and the desktop page's profile menu.
 - **Names on screen** — `forcex_rebrand.bundle.js` turns Frappe / ERPNext / HRMS into
@@ -78,8 +83,9 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
 - **Upstream videos** — onboarding YouTube videos, YouTube/Vimeo players and thumbnails,
   ERPNext's video images and Frappe's help video dialog are hidden.
 
-To brand another app's logo, add it to `APP_LOGOS` in `forcex_theme/branding.py` and put
-the SVG in `public/images/`.
+To brand another app's logo: put the SVG in `public/images/`, add the app to `APP_LOGOS`
+and its upstream logo file(s) to `UPSTREAM_LOGOS` in `forcex_theme/branding.py`. The tests
+check every file exists, is valid SVG and has a title.
 
 ### Export / Import
 

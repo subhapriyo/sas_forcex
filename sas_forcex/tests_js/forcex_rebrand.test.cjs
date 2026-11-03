@@ -26,11 +26,8 @@ function loadRebrand(globals = {}) {
   sandbox.window = sandbox;
   vm.createContext(sandbox);
   vm.runInContext(fs.readFileSync(BUNDLE, "utf8"), sandbox);
-  const { rebrandText, isSkipped, hidingCss, muteUpstreamVideos, unwrapDocLinks } = sandbox.module.exports;
-  return {
-    rebrandText, isSkipped, hidingCss, muteUpstreamVideos, unwrapDocLinks,
-    forcex: sandbox.forcex, listeners, sandbox,
-  };
+  const exp = sandbox.module.exports;
+  return { ...exp, forcex: sandbox.forcex, listeners, sandbox };
 }
 
 /** A fake element that sits inside the given CSS selectors (enough for el.closest). */
@@ -219,6 +216,46 @@ test("unwrapping is harmless on text nodes and empty input", () => {
 test("muting videos is harmless outside the Desk (no frappe.help)", () => {
   const { muteUpstreamVideos } = loadRebrand();
   assert.doesNotThrow(() => muteUpstreamVideos());
+});
+
+/* ---------- upstream logos inside pages ------------------------------------------ */
+// Pages such as HRMS's Roster draw upstream logos themselves; the server sends the map
+// (frappe.boot.forcex_brand on the Desk, window.forcex_brand on standalone pages).
+const HR_UP = "/assets/hrms/images/frappe-hr-logo.svg";
+const HR_FX = "/assets/sas_forcex/images/forcex-hr-logo.svg";
+const SWAPS = { [HR_UP]: HR_FX };
+
+test("an upstream logo <img> is pointed at the ForceX logo", () => {
+  const { swapLogoSrc } = loadRebrand({ location: { origin: "http://site.localhost:8000" } });
+  assert.equal(swapLogoSrc(HR_UP, SWAPS), HR_FX);
+  assert.equal(swapLogoSrc(`http://site.localhost:8000${HR_UP}`, SWAPS), HR_FX);
+  assert.equal(swapLogoSrc(`${HR_UP}?v=3`, SWAPS), HR_FX, "cache-busting query");
+});
+
+test("other images keep their source", () => {
+  const { swapLogoSrc } = loadRebrand({ location: { origin: "http://site.localhost:8000" } });
+  assert.equal(swapLogoSrc("/files/company-logo.png", SWAPS), null);
+  assert.equal(swapLogoSrc("", SWAPS), null);
+  assert.equal(swapLogoSrc(HR_UP, {}), null);
+});
+
+test("inline SVG logos are painted over with CSS, without touching the page's DOM", () => {
+  const { inlineLogoCss } = loadRebrand();
+  const selector = 'svg[viewBox="0 0 117 117"]:has(path[fill="#A1EEC9"])';
+  const css = inlineLogoCss([{ selector, logo: HR_FX }]);
+  assert.ok(css.includes(`${selector} {`));
+  assert.ok(css.includes(`url("${HR_FX}")`));
+  assert.ok(css.includes(`${selector} > *`), "the upstream drawing is hidden");
+  assert.equal(inlineLogoCss([]), "");
+  assert.equal(inlineLogoCss(undefined), "");
+});
+
+test("the brand map comes from the standalone page, else from the Desk boot", () => {
+  const page = loadRebrand({ forcex_brand: { logo_swaps: SWAPS } });
+  assert.equal(page.brandConfig().logo_swaps[HR_UP], HR_FX);
+  const desk = loadRebrand({ frappe: { boot: { forcex_brand: { logo_swaps: SWAPS } } } });
+  assert.equal(desk.brandConfig().logo_swaps[HR_UP], HR_FX);
+  assert.equal(Object.keys(loadRebrand().brandConfig()).length, 0);
 });
 
 /* ---------- boot behaviour ------------------------------------------------------- */

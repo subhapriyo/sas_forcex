@@ -246,6 +246,19 @@ SECTIONS: tuple[Tab, ...] = (
 				"nav_visibility",
 				"Visibility",
 				(
+					check(
+						"use_forcex_logos",
+						"Use ForceX app logos",
+						0,
+						description="ForceX icons for ERPNext, HR, India Compliance, Framework and other apps. "
+						"Always on where SAS Fortuna is installed.",
+					),
+					check(
+						"show_theme_icon",
+						"Show ForceX Theme icon on the apps screen",
+						1,
+						description="For System Managers. Administrator always sees it.",
+					),
 					check("hide_help", "Hide Help in the sidebar menu", 0),
 					check(
 						"hide_about",

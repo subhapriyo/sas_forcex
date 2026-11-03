@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" role="img" aria-labelledby="forcex-framework-title">
+	<title id="forcex-framework-title">ForceX Framework</title>
+	<!-- ForceX app logo family: 100x100 tile (#334155), white glyph, ForceX accent. -->
+	<!-- Glyph: four building blocks, one orange. -->
+	<rect width="100" height="100" rx="28.57" fill="#334155"/>
+	<rect x="24" y="24" width="22" height="22" rx="5" fill="#FFFFFF"/><rect x="54" y="24" width="22" height="22" rx="5" fill="#FFFFFF"/><rect x="24" y="54" width="22" height="22" rx="5" fill="#FFFFFF"/><rect x="54" y="54" width="22" height="22" rx="5" fill="#F26522"/>
+</svg>

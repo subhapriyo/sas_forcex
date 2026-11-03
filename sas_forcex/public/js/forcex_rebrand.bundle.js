@@ -132,8 +132,63 @@
 		if (next !== node.nodeValue) node.nodeValue = next;
 	}
 
+	// ---------------------------------------------------------------------
+	// 4a. Upstream logos drawn inside pages
+	// ---------------------------------------------------------------------
+	// The maps come from the server (sas_forcex/forcex_theme/branding.py → brand_config):
+	// frappe.boot.forcex_brand on the Desk, window.forcex_brand on standalone app pages
+	// such as HRMS's Roster (added by sas_forcex.theme.after_request).
+	function brandConfig() {
+		if (window.forcex_brand) return window.forcex_brand;
+		const boot = window.frappe && frappe.boot;
+		return (boot && boot.forcex_brand) || {};
+	}
+
+	/** The ForceX logo for an upstream logo URL (absolute, relative or with ?v=), else null. */
+	function swapLogoSrc(src, swaps) {
+		if (!src || !swaps) return null;
+		try {
+			const origin = (window.location && window.location.origin) || "http://local.invalid";
+			return swaps[new URL(src, origin).pathname] || null;
+		} catch (e) {
+			return null;
+		}
+	}
+
+	/**
+	 * CSS that paints a ForceX logo over upstream logos drawn as inline <svg> (no URL to
+	 * swap, e.g. HRMS's FrappeHRLogo component). The <svg> keeps its size and place; only
+	 * its drawing is hidden. The page's DOM is not touched, so Vue/React stay in charge.
+	 */
+	function inlineLogoCss(inline) {
+		return (inline || [])
+			.map(
+				({ selector, logo }) =>
+					`${selector} { background: url("${logo}") center / contain no-repeat !important; }\n` +
+					`${selector} > * { visibility: hidden !important; }`
+			)
+			.join("\n");
+	}
+
+	function injectLogoCss() {
+		const css = inlineLogoCss(brandConfig().inline_logos);
+		if (!css || document.getElementById("forcex-rebrand-logos")) return;
+		const style = document.createElement("style");
+		style.id = "forcex-rebrand-logos";
+		style.textContent = css;
+		document.head.appendChild(style);
+	}
+
+	/** Point an upstream logo <img> at its ForceX logo. */
+	function swapLogoImage(el) {
+		if (el.tagName !== "IMG") return;
+		const next = swapLogoSrc(el.getAttribute("src"), brandConfig().logo_swaps);
+		if (next && el.getAttribute("src") !== next) el.setAttribute("src", next);
+	}
+
 	function processAttributes(el) {
 		if (isSkipped(el)) return;
+		swapLogoImage(el);
 		for (const attr of TEXT_ATTRS) {
 			const value = el.getAttribute(attr);
 			if (value) {
@@ -306,6 +361,7 @@
 	function start() {
 		wrapTranslate();
 		injectHidingCss();
+		injectLogoCss();
 		muteUpstreamVideos();
 		processTree(document.body);
 		processTitle();
@@ -321,7 +377,8 @@
 			subtree: true,
 			characterData: true,
 			attributes: true,
-			attributeFilter: TEXT_ATTRS,
+			// "src": an app may set a logo's source after the <img> is in the page
+			attributeFilter: [...TEXT_ATTRS, "src"],
 		});
 
 		// Title lives in <head>, outside the body observer.
@@ -352,6 +409,15 @@
 
 	// Allow unit tests in Node to import the pure function.
 	if (typeof module !== "undefined" && module.exports) {
-		module.exports = { rebrandText, isSkipped, hidingCss, muteUpstreamVideos, unwrapDocLinks };
+		module.exports = {
+			rebrandText,
+			isSkipped,
+			hidingCss,
+			muteUpstreamVideos,
+			unwrapDocLinks,
+			brandConfig,
+			swapLogoSrc,
+			inlineLogoCss,
+		};
 	}
 })();

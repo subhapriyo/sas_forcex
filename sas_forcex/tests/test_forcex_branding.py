@@ -1,9 +1,11 @@
 """ForceX branding rules (sas_forcex/forcex_theme/branding.py) — no site needed.
 
-Covers the three things the branding layer decides:
-  * which app logos are swapped for ForceX ones (ERPNext → ForceX ERP),
+Covers what the branding layer decides:
+  * which app logos are swapped for ForceX ones (ERPNext → ForceX ERP, Frappe HR →
+    ForceX HR, ...), on the Desk and inside pages that draw upstream logos,
+  * who sees the ForceX Theme icon on the apps screen,
   * which Help menu rows count as "About" and "Support",
-  * that the icon files the hooks point at really exist and are valid SVG.
+  * that every icon file the code points at really exists and is valid SVG.
 Written before branding.py (TDD).
 
 Run: python -m unittest discover -s sas_forcex/tests -t .   (from apps/sas_forcex)
@@ -36,8 +38,26 @@ class TestAppLogos(unittest.TestCase):
 		out = br.brand_app_data([app("erpnext", ERPNEXT_LOGO)])
 		self.assertEqual(out[0]["app_logo_url"], br.FORCEX_ERP_LOGO)
 
-	def test_other_apps_keep_their_own_logo(self):
-		apps = [app("hrms", "/assets/hrms/images/frappe-hr-logo.svg"), app("frappe", "/f.svg")]
+	def test_every_upstream_app_on_the_apps_screen_gets_a_forcex_logo(self):
+		apps = [app(name, "/upstream.svg") for name in br.APP_LOGOS]
+		for out in br.brand_app_data(apps):
+			self.assertEqual(out["app_logo_url"], br.APP_LOGOS[out["app_name"]])
+			self.assertTrue(out["app_logo_url"].startswith("/assets/sas_forcex/images/forcex-"))
+
+	def test_exactly_the_apps_of_the_forcex_sites_are_rebranded(self):
+		# the upstream apps with a Desk icon on sil-dev and fleeto (Telephony has none;
+		# ForceX's own apps keep their logos)
+		self.assertEqual(set(br.APP_LOGOS), {"erpnext", "hrms", "india_compliance", "frappe", "helpdesk"})
+		self.assertEqual(set(br.UPSTREAM_LOGOS), set(br.APP_LOGOS))
+
+	def test_no_unused_logo_files_are_shipped(self):
+		shipped = {p.name for p in (PUBLIC / "images").glob("forcex-*-logo.svg")}
+		used = {Path(url).name for url in br.APP_LOGOS.values()}
+		self.assertEqual(shipped, used)
+
+	def test_apps_without_a_forcex_logo_keep_their_own(self):
+		# our own apps (e.g. SAS Fortuna) and apps not on our sites (e.g. CRM) are left alone
+		apps = [app("sas_fortuna", "/assets/sas_fortuna/images/logo.png"), app("crm", "/f.svg")]
 		self.assertEqual(br.brand_app_data(apps), apps)
 
 	def test_a_light_and_dark_logo_pair_is_replaced_as_a_pair(self):
@@ -55,14 +75,97 @@ class TestAppLogos(unittest.TestCase):
 		self.assertEqual(br.brand_app_data([]), [])
 		self.assertEqual(br.brand_app_data([{"app_name": "erpnext"}])[0]["app_logo_url"], br.FORCEX_ERP_LOGO)
 
-	def test_known_erpnext_image_urls_map_to_forcex(self):
+	def test_known_upstream_logo_urls_map_to_forcex(self):
 		self.assertEqual(br.rebrand_url(ERPNEXT_LOGO), br.FORCEX_ERP_LOGO)
 		self.assertEqual(br.rebrand_url("/assets/erpnext/images/erpnext-favicon.svg"), br.FORCEX_ERP_LOGO)
+		self.assertEqual(br.rebrand_url("/assets/hrms/images/frappe-hr-logo.svg"), br.APP_LOGOS["hrms"])
+		self.assertEqual(
+			br.rebrand_url("/assets/india_compliance/images/india-compliance.svg"),
+			br.APP_LOGOS["india_compliance"],
+		)
 		self.assertEqual(br.rebrand_url("/files/my-logo.png"), "/files/my-logo.png")
 		self.assertIsNone(br.rebrand_url(None))
 
-	def test_the_browser_gets_the_same_logo_map(self):
-		self.assertEqual(br.APP_LOGOS, {"erpnext": br.FORCEX_ERP_LOGO})
+	def test_every_swap_points_at_a_logo_of_the_same_app(self):
+		for app_name, urls in br.UPSTREAM_LOGOS.items():
+			for url in urls:
+				self.assertEqual(br.LOGO_URL_SWAPS[url], br.APP_LOGOS[app_name], url)
+
+	def test_the_browser_gets_one_brand_config(self):
+		# Desk boot (frappe.boot.forcex_brand) and standalone pages (window.forcex_brand)
+		cfg = br.brand_config(logos=True)
+		self.assertEqual(cfg["app_logos"], br.APP_LOGOS)
+		self.assertEqual(cfg["logo_swaps"], br.LOGO_URL_SWAPS)
+		self.assertTrue(cfg["inline_logos"])
+
+	def test_with_logos_off_the_browser_swaps_nothing(self):
+		self.assertEqual(
+			br.brand_config(logos=False), {"app_logos": {}, "logo_swaps": {}, "inline_logos": []}
+		)
+
+	def test_the_hr_apps_inline_logo_is_recognised(self):
+		# HRMS's Vue pages draw their logo as an inline SVG (mint tile #A1EEC9, 117x117)
+		(hr,) = [i for i in br.INLINE_LOGOS if i["logo"] == br.APP_LOGOS["hrms"]]
+		self.assertIn('viewBox="0 0 117 117"', hr["selector"])
+		self.assertIn("#A1EEC9", hr["selector"])
+
+
+# ------------------------------------------------------------------------- which sites get the logos
+class TestLogosEnabled(unittest.TestCase):
+	"""ForceX app logos only where wanted: the 'Use ForceX app logos' option, and always on
+	sites with SAS Fortuna installed."""
+
+	def test_off_by_default(self):
+		self.assertEqual(br.logos_enabled(0, ["frappe", "erpnext", "hrms"]), False)
+
+	def test_the_option_switches_them_on(self):
+		self.assertTrue(br.logos_enabled(1, ["frappe", "erpnext"]))
+
+	def test_always_on_where_sas_fortuna_is_installed(self):
+		self.assertTrue(br.logos_enabled(0, ["frappe", "erpnext", "sas_fortuna"]))
+
+	def test_missing_app_list_is_harmless(self):
+		self.assertFalse(br.logos_enabled(0, None))
+
+	def test_the_option_is_off_in_the_defaults(self):
+		from sas_forcex.forcex_theme.schema import DEFAULTS
+
+		self.assertEqual(DEFAULTS["use_forcex_logos"], 0)
+
+
+# ------------------------------------------------------------------------- website splash / favicon
+class TestSiteImages(unittest.TestCase):
+	"""ERPNext sets the Desk splash and the website favicon to its own logo (website_context);
+	with logos on they become the ForceX ERP mark. A site's own images are kept."""
+
+	def test_erpnext_images_become_forcex(self):
+		ctx = {"splash_image": ERPNEXT_LOGO, "favicon": "/assets/erpnext/images/erpnext-favicon.svg"}
+		self.assertEqual(
+			br.brand_site_images(ctx), {"splash_image": br.FORCEX_ERP_LOGO, "favicon": br.FORCEX_ERP_LOGO}
+		)
+
+	def test_a_sites_own_images_are_kept(self):
+		self.assertEqual(
+			br.brand_site_images({"favicon": "/files/forcex_favicon.ico", "splash_image": ""}), {}
+		)
+		self.assertEqual(br.brand_site_images({}), {})
+
+
+# ------------------------------------------------------------------------- ForceX Theme icon
+class TestThemeIcon(unittest.TestCase):
+	"""The ForceX Theme tile on the apps screen (Navigation → 'Show ForceX Theme icon')."""
+
+	def test_administrator_always_sees_it(self):
+		self.assertTrue(br.theme_icon_visible("Administrator", [], show=False))
+		self.assertTrue(br.theme_icon_visible("Administrator", [], show=True))
+
+	def test_system_managers_see_it_while_the_option_is_on(self):
+		self.assertTrue(br.theme_icon_visible("jane@x.com", ["System Manager"], show=True))
+		self.assertFalse(br.theme_icon_visible("jane@x.com", ["System Manager"], show=False))
+
+	def test_other_users_never_see_it(self):
+		self.assertFalse(br.theme_icon_visible("bob@x.com", ["Employee"], show=True))
+		self.assertFalse(br.theme_icon_visible("Guest", ["Guest"], show=True))
 
 
 # ------------------------------------------------------------------------- Help menu rows
@@ -227,11 +330,16 @@ class TestIconFiles(unittest.TestCase):
 	def test_forcex_erp_logo_exists_and_is_valid(self):
 		self.check_svg(br.FORCEX_ERP_LOGO)
 
+	def test_every_app_logo_exists_and_is_valid(self):
+		for url in set(br.APP_LOGOS.values()):
+			with self.subTest(url=url):
+				self.check_svg(url)
+
 	def test_theme_settings_icon_exists_and_is_valid(self):
 		self.check_svg(br.THEME_SETTINGS_ICON)
 
 	def test_icons_carry_an_accessible_title(self):
-		for url in (br.FORCEX_ERP_LOGO, br.THEME_SETTINGS_ICON):
+		for url in {br.THEME_SETTINGS_ICON, *br.APP_LOGOS.values()}:
 			root = ET.parse(asset_path(url)).getroot()
 			titles = [el.text for el in root.iter() if el.tag.endswith("title")]
 			self.assertTrue(titles and titles[0].strip(), f"{url} needs a <title>")
@@ -261,10 +369,10 @@ class TestHooks(unittest.TestCase):
 	def test_standalone_app_pages_get_the_rebrand_script(self):
 		self.assertIn("sas_forcex.theme.after_request", self.hooks.after_request)
 
-	def test_website_splash_and_favicon_use_the_forcex_erp_mark(self):
-		# ERPNext sets both to its own logo through the same hook; the last app wins.
-		self.assertEqual(self.hooks.website_context["splash_image"], br.FORCEX_ERP_LOGO)
-		self.assertEqual(self.hooks.website_context["favicon"], br.FORCEX_ERP_LOGO)
+	def test_splash_and_favicon_are_not_forced_on_every_site(self):
+		# A static website_context would brand every site; it is done per site in
+		# update_website_context instead, only where ForceX app logos are on.
+		self.assertFalse(hasattr(self.hooks, "website_context"))
 
 
 if __name__ == "__main__":

@@ -66,6 +66,8 @@
   "sidebar_active_bg_dark",
   "sidebar_active_text_dark",
   "nav_visibility_section",
+  "use_forcex_logos",
+  "show_theme_icon",
   "hide_help",
   "hide_about",
   "hide_support",
@@ -521,6 +523,20 @@
    "fieldname": "nav_visibility_section",
    "fieldtype": "Section Break",
    "label": "Visibility"
+  },
+  {
+   "fieldname": "use_forcex_logos",
+   "fieldtype": "Check",
+   "label": "Use ForceX app logos",
+   "default": "0",
+   "description": "ForceX icons for ERPNext, HR, India Compliance, Framework and other apps. Always on where SAS Fortuna is installed."
+  },
+  {
+   "fieldname": "show_theme_icon",
+   "fieldtype": "Check",
+   "label": "Show ForceX Theme icon on the apps screen",
+   "default": "1",
+   "description": "For System Managers. Administrator always sees it."
   },
   {
    "fieldname": "hide_help",
@@ -1045,7 +1061,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-03 12:00:00.000000",
+ "modified": "2026-11-03 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "SAS ForceX",
  "name": "ForceX Theme Settings",

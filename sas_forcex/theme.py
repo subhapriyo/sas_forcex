@@ -63,13 +63,25 @@ def extend_bootinfo(bootinfo):
 	_brand_boot(bootinfo, config)
 
 
+def logos_on() -> bool:
+	"""ForceX app logos on this site? 'Use ForceX app logos', or SAS Fortuna installed."""
+	try:
+		option = engine.coerce_settings(get_settings())["use_forcex_logos"]
+		return engine.logos_enabled(option, frappe.get_installed_apps())
+	except Exception:
+		_log.exception("Could not tell whether ForceX app logos are on")
+		return False
+
+
 def _brand_boot(bootinfo, config):
 	"""ForceX logos and menus. Logged and skipped on error, like the theme itself."""
 	try:
-		# Logos are the brand, not the theme: swapped even when the theme is switched off.
-		# The browser gets the map too, for app data the Desk re-fetches after boot.
-		bootinfo.forcex_brand = {"app_logos": engine.APP_LOGOS}
-		if bootinfo.get("app_data"):
+		# Logos are the brand, not the theme: they follow their own option, not 'enabled'.
+		# The browser gets the maps too (empty when logos are off), for app data the Desk
+		# re-fetches after boot and for upstream logos drawn inside pages.
+		logos = logos_on()
+		bootinfo.forcex_brand = engine.brand_config(logos)
+		if logos and bootinfo.get("app_data"):
 			bootinfo.app_data = engine.brand_app_data(bootinfo.app_data)
 
 		# About / Support: hide the rows in the boot copy of Navbar Settings only.
@@ -88,9 +100,15 @@ def _brand_boot(bootinfo, config):
 
 
 def can_open_theme_settings() -> bool:
-	"""hooks.py → add_to_apps_screen.has_permission: the ForceX Theme icon is shown to the
-	people who may change the theme (the DocType is System Manager only)."""
-	return "System Manager" in frappe.get_roles()
+	"""hooks.py → add_to_apps_screen.has_permission: who sees the ForceX Theme icon.
+
+	Administrator always; other System Managers while Navigation → 'Show ForceX Theme
+	icon' is on (rule: forcex_theme/branding.py → theme_icon_visible). Hiding the icon
+	does not change permissions: System Managers can still open /desk/forcex-theme-settings.
+	"""
+	user = frappe.session.user
+	show = engine.coerce_settings(get_settings())["show_theme_icon"]
+	return engine.theme_icon_visible(user, frappe.get_roles(user), show)
 
 
 def update_website_context(context):
@@ -101,9 +119,15 @@ def update_website_context(context):
 	head_html on every page. We append, so Website Settings → Head HTML is kept.
 	"""
 	path = (context.get("path") or "").strip("/")
+	updates = {}
 	snippet = engine.render_head_script(get_client_config(for_login=(path == "login")))
 	if snippet:
-		return {"head_html": (context.get("head_html") or "") + snippet}
+		updates["head_html"] = (context.get("head_html") or "") + snippet
+	# The Desk splash and website favicon: ForceX ERP mark instead of ERPNext's, only where
+	# ForceX app logos are on (the Desk page runs this hook too).
+	if logos_on():
+		updates.update(engine.brand_site_images(context))
+	return updates or None
 
 
 def after_request(response, request):
@@ -117,8 +141,14 @@ def after_request(response, request):
 			return
 		from frappe.utils.jinja_globals import bundled_asset
 
+		# These pages have no Desk boot, so the logo maps travel with the script.
+		# "</" is escaped so the JSON can never close the <script> early.
+		brand = frappe.as_json(engine.brand_config(logos_on()), indent=None).replace("</", "<\\/")
 		src = frappe.utils.escape_html(bundled_asset("forcex_rebrand.bundle.js"))
-		snippet = f'<script {engine.REBRAND_MARKER} src="{src}"></script>'
+		snippet = (
+			f"<script {engine.REBRAND_MARKER}>window.forcex_brand = {brand};</script>"
+			f'<script {engine.REBRAND_MARKER} src="{src}"></script>'
+		)
 		html = response.get_data(as_text=True)
 		branded = engine.inject_head(html, snippet)
 		if branded != html:
@@ -131,6 +161,23 @@ def after_install():
 	"""hooks.py → after_install: prefill a fresh site with the ForceX defaults and name."""
 	prefill_settings()
 	apply_brand_settings()
+
+
+# ------------------------------------------------------------------ new settings on old sites
+def switch_on_new_checks(fields) -> list:
+	"""For patches: store 1 for ForceX Theme Settings checks that default to on but have
+	never been saved on this site. A DocType default only reaches a *new* Single, so on an
+	existing site such a field would read 0. A value someone already saved is left alone.
+	Returns the fields that were switched on."""
+	switched = []
+	for field in fields:
+		stored = frappe.db.sql("select 1 from `tabSingles` where doctype=%s and field=%s", (DOCTYPE, field))
+		if not stored:
+			frappe.db.set_single_value(DOCTYPE, field, 1)
+			switched.append(field)
+	if switched:
+		clear_caches()
+	return switched
 
 
 # ------------------------------------------------------------------ brand settings

@@ -8,3 +8,4 @@ sas_forcex.patches.v16_0.prefill_forcex_theme_settings
 sas_forcex.patches.v16_0.hide_about_and_support
 sas_forcex.patches.v16_0.rebrand_app_name
 sas_forcex.patches.v16_0.rebrand_brand_settings
+sas_forcex.patches.v16_0.show_theme_icon

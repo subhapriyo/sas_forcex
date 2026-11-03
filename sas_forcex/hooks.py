@@ -284,13 +284,10 @@ after_install = "sas_forcex.theme.after_install"
 
 # ---- ForceX branding --------------------------------------------------------------
 # Rules: sas_forcex/forcex_theme/branding.py · icons: sas_forcex/public/images/
-# The ERPNext logo is swapped for ForceX ERP in extend_bootinfo (apps screen, app
-# switcher, dock). Splash and favicon come from this hook; ERPNext sets the same keys,
-# and the last installed app wins. A site's own Website Settings still override both.
-website_context = {
-	"splash_image": "/assets/sas_forcex/images/forcex-erp-logo.svg",
-	"favicon": "/assets/sas_forcex/images/forcex-erp-logo.svg",
-}
+# ForceX app logos (ERP, HR, India Compliance, Framework, ...) are applied per site, only
+# where 'Use ForceX app logos' is on or SAS Fortuna is installed: in extend_bootinfo (apps
+# screen, app switcher, dock) and update_website_context (Desk splash, favicon). That is
+# why there is no static website_context hook here — it would brand every site.
 
 # HRMS's standalone pages (/hr/roster, /hrms) bring their own HTML and load none of the
 # includes above, so the rebrand script is added to them on the way out.

@@ -136,11 +136,27 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		theme.extend_bootinfo(boot)
 		return boot
 
-	def test_desk_shows_the_forcex_erp_logo_instead_of_erpnext(self):
+	def _logos(self, on):
+		self.doc.use_forcex_logos = 1 if on else 0
+		self.doc.save()
+
+	def test_desk_shows_the_forcex_erp_logo_when_logos_are_on(self):
 		if "erpnext" not in frappe.get_installed_apps():
 			self.skipTest("ERPNext is not installed on this site")
+		self._logos(True)
 		apps = {a["app_name"]: a for a in self._desk_boot().app_data}
 		self.assertEqual(apps["erpnext"]["app_logo_url"], theme_engine.FORCEX_ERP_LOGO)
+
+	def test_upstream_logos_stay_when_logos_are_off(self):
+		if "sas_fortuna" in frappe.get_installed_apps():
+			self.skipTest("logos are always on where SAS Fortuna is installed")
+		self._logos(False)
+		boot = self._desk_boot()
+		for a in boot.app_data:
+			if a["app_name"] == "sas_forcex":
+				continue  # the ForceX Theme tile is our own icon, not a swapped one
+			self.assertNotIn("/assets/sas_forcex/images/forcex-", str(a.get("app_logo_url")), a["app_name"])
+		self.assertEqual(boot.forcex_brand, theme_engine.brand_config(logos=False))
 
 	def test_theme_settings_icon_is_on_the_apps_screen_for_admins(self):
 		apps = {a["app_name"]: a for a in self._desk_boot().app_data}
@@ -153,6 +169,28 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		self.assertFalse(theme.can_open_theme_settings())
 		frappe.set_user("Administrator")
 		self.assertTrue(theme.can_open_theme_settings())
+
+	def test_theme_icon_option_hides_it_but_never_from_administrator(self):
+		self.doc.show_theme_icon = 0
+		self.doc.save()
+		self.assertTrue(theme.can_open_theme_settings(), "Administrator always sees it")
+		user = frappe.db.get_value(
+			"Has Role",
+			{"role": "System Manager", "parent": ["!=", "Administrator"], "parenttype": "User"},
+			"parent",
+		)
+		if not user:
+			self.skipTest("needs a non-Administrator System Manager on this site")
+		frappe.set_user(user)
+		self.assertFalse(theme.can_open_theme_settings())
+
+	def test_hr_and_other_app_logos_are_forcex_on_the_desk(self):
+		self._logos(True)
+		apps = {a["app_name"]: a for a in self._desk_boot().app_data}
+		for name in set(apps) & set(theme_engine.APP_LOGOS):
+			self.assertEqual(apps[name]["app_logo_url"], theme_engine.APP_LOGOS[name], name)
+		boot = self._desk_boot()
+		self.assertEqual(boot.forcex_brand, theme_engine.brand_config(logos=True))
 
 	def test_about_and_support_are_hidden_from_the_help_menu(self):
 		help_rows = self._desk_boot().navbar_settings.help_dropdown
@@ -219,9 +257,13 @@ class TestForceXThemeSettings(IntegrationTestCase):
 	def test_hr_roster_page_loads_the_rebrand_script(self):
 		from frappe.utils.jinja_globals import bundled_asset
 
+		self._logos(True)
 		html = self._page("/hr/roster/")
 		self.assertIn(bundled_asset("forcex_rebrand.bundle.js"), html)
 		self.assertIn("data-forcex-rebrand", html)
+		# the logo map travels with it, as these pages have no Desk boot
+		self.assertIn("window.forcex_brand", html)
+		self.assertIn(theme_engine.APP_LOGOS["hrms"], html)
 
 	def test_other_responses_are_untouched(self):
 		plain = "<html><head></head></html>"
@@ -229,12 +271,22 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		self.assertEqual(self._page("/hr/roster/", '{"a": 1}', mimetype="application/json"), '{"a": 1}')
 		self.assertEqual(self._page("/hr/roster/", plain, status=404), plain)
 
-	def test_desk_splash_uses_the_forcex_erp_mark(self):
-		from frappe.website.doctype.website_settings.website_settings import get_website_settings
-
-		if frappe.db.get_single_value("Website Settings", "splash_image"):
-			self.skipTest("this site sets its own splash image, which rightly wins")
-		self.assertEqual(get_website_settings().get("splash_image"), theme_engine.FORCEX_ERP_LOGO)
+	def test_desk_splash_and_favicon_follow_the_logo_option(self):
+		erp = {
+			"path": "desk",
+			"splash_image": "/assets/erpnext/images/erpnext-logo.svg",
+			"favicon": "/assets/erpnext/images/erpnext-favicon.svg",
+		}
+		self._logos(True)
+		out = theme.update_website_context(dict(erp))
+		self.assertEqual(out["splash_image"], theme_engine.FORCEX_ERP_LOGO)
+		self.assertEqual(out["favicon"], theme_engine.FORCEX_ERP_LOGO)
+		if "sas_fortuna" in frappe.get_installed_apps():
+			return
+		self._logos(False)
+		out = theme.update_website_context(dict(erp)) or {}
+		self.assertNotIn("splash_image", out)
+		self.assertNotIn("favicon", out)
 
 	def test_disabled_theme_adds_nothing_to_the_login_page(self):
 		self.doc.enabled = 0
