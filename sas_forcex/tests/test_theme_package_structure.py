@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 PKG = Path(__file__).resolve().parents[1] / "forcex_theme"
-LAYERS = ["colours", "schema", "rules", "css", "client", "transfer"]
+LAYERS = ["colours", "schema", "rules", "css", "branding", "client", "transfer"]
 
 
 def _imports(path):

@@ -49,16 +49,26 @@ function makeDocument(theme = "light") {
   };
 }
 
+/** A stand-in for frappe.ui.Dropdown that remembers the options it was built with. */
+class FakeDropdown {
+  constructor(opts) { this.opts = opts; FakeDropdown.built.push(opts); }
+}
+FakeDropdown.built = [];
+
+/** Something that looks like $(selector) for the given CSS class. */
+const jq = (cls) => ({ jquery: "3.7", 0: { matches: (sel) => sel === `.${cls}` }, length: 1 });
+
 /** Load the bundle with a given boot config. Returns handles for assertions. */
-function load(config, { theme = "light" } = {}) {
+function load(config, { theme = "light", boot = {} } = {}) {
   const document = makeDocument(theme);
   class SidebarHeader {
     get_help_siblings() { return [{ group: "", options: ["docs"] }]; }
   }
   const setThemeCalls = [];
+  FakeDropdown.built = [];
   const frappe = {
-    boot: config === undefined ? {} : { forcex_theme: config },
-    ui: { SidebarHeader, set_theme: (t) => setThemeCalls.push(t) },
+    boot: config === undefined ? { ...boot } : { forcex_theme: config, ...boot },
+    ui: { SidebarHeader, set_theme: (t) => setThemeCalls.push(t), Dropdown: FakeDropdown },
   };
   const sandbox = { document, frappe, console };
   sandbox.window = sandbox;
@@ -136,6 +146,65 @@ test("hide_help empties the sidebar header's Help submenu", () => {
 test("Help stays when hide_help is off", () => {
   const { SidebarHeader } = load(ON({ hide_help: false }));
   assert.equal(new SidebarHeader().get_help_siblings().length, 1);
+});
+
+/* ---------- ForceX ERP logo --------------------------------------------------------- */
+const ERPNEXT_LOGO = "/assets/erpnext/images/erpnext-logo.svg";
+const FORCEX_ERP = "/assets/sas_forcex/images/forcex-erp-logo.svg";
+const BRAND = { forcex_brand: { app_logos: { erpnext: FORCEX_ERP } } };
+const appData = () => [
+  { app_name: "erpnext", app_title: "ERPNext", app_logo_url: ERPNEXT_LOGO },
+  { app_name: "hrms", app_title: "Frappe HR", app_logo_url: "/assets/hrms/images/frappe-hr-logo.svg" },
+];
+
+test("the ERPNext icon becomes the ForceX ERP icon on load", () => {
+  const { frappe } = load(ON(), { boot: { ...BRAND, app_data: appData() } });
+  assert.equal(frappe.boot.app_data[0].app_logo_url, FORCEX_ERP);
+  assert.equal(frappe.boot.app_data[1].app_logo_url, "/assets/hrms/images/frappe-hr-logo.svg");
+});
+
+test("app data the Desk fetches again later (e.g. after editing a workspace) is branded too", () => {
+  const { frappe } = load(ON(), { boot: { ...BRAND, app_data: [] } });
+  frappe.boot.app_data = appData(); // what workspace.js does with a fresh payload
+  assert.equal(frappe.boot.app_data[0].app_logo_url, FORCEX_ERP);
+});
+
+test("the logo is part of the brand, so it is swapped even with the theme switched off", () => {
+  const { frappe } = load({ enabled: 0, classes: [], css: "" }, { boot: { ...BRAND, app_data: appData() } });
+  assert.equal(frappe.boot.app_data[0].app_logo_url, FORCEX_ERP);
+});
+
+test("a light/dark logo pair is swapped as a pair", () => {
+  const pair = [{ app_name: "erpnext", app_logo_url: [ERPNEXT_LOGO, "/dark.svg"] }];
+  const { frappe } = load(ON(), { boot: { ...BRAND, app_data: pair } });
+  assert.equal(frappe.boot.app_data[0].app_logo_url.join(","), `${FORCEX_ERP},${FORCEX_ERP}`);
+});
+
+/* ---------- About / Support on the desktop avatar menu ------------------------------ */
+const AVATAR_MENU = [{ label: "Edit Profile" }, { label: "About" }, { label: "Frappe Support" }, { label: "Logout" }];
+const labels = (opts) => opts.options.map((o) => o.label).join(",");
+
+test("About and Frappe Support are dropped from the desktop avatar menu", () => {
+  const { frappe } = load(ON({ hide_desktop_menu: ["About", "Frappe Support"] }));
+  new frappe.ui.Dropdown({ trigger: jq("desktop-avatar"), options: AVATAR_MENU });
+  assert.equal(labels(FakeDropdown.built[0]), "Edit Profile,Logout");
+});
+
+test("other dropdowns keep every row", () => {
+  const { frappe } = load(ON({ hide_desktop_menu: ["About"] }));
+  new frappe.ui.Dropdown({ trigger: jq("some-other-menu"), options: AVATAR_MENU });
+  assert.equal(labels(FakeDropdown.built[0]), "Edit Profile,About,Frappe Support,Logout");
+});
+
+test("the avatar menu is untouched when nothing is to be hidden", () => {
+  const { frappe } = load(ON({ hide_desktop_menu: [] }));
+  assert.equal(frappe.ui.Dropdown, FakeDropdown, "no wrapper installed");
+});
+
+test("the wrapped Dropdown is still a frappe.ui.Dropdown", () => {
+  const { frappe } = load(ON({ hide_desktop_menu: ["About"] }));
+  const dd = new frappe.ui.Dropdown({ trigger: jq("desktop-avatar"), options: [] });
+  assert.ok(dd instanceof FakeDropdown);
 });
 
 test("hide_help survives a Desk build without SidebarHeader", () => {

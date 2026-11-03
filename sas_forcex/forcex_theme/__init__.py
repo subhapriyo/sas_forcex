@@ -5,6 +5,7 @@ without a site. One file per concern; each may only import from the ones above i
   schema.py    every setting: tabs, sections, labels, defaults → DEFAULTS, DocType fields
   rules.py     the one rulebook: coerce, validate a value, cross-field rules, readability
   css.py       --fxh-* tokens per mode, the <style> text, the baked-in default palette
+  branding.py  ForceX logos for upstream apps (ERPNext → ForceX ERP), About / Support rows
   client.py    what the browser gets: Desk boot config, website/login <head> snippet
   transfer.py  export / import (dry-run preview, then apply)
 

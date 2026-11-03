@@ -247,6 +247,18 @@ SECTIONS: tuple[Tab, ...] = (
 				"Visibility",
 				(
 					check("hide_help", "Hide Help in the sidebar menu", 0),
+					check(
+						"hide_about",
+						"Hide About",
+						1,
+						description="Removes 'About' from the Help menu and the desktop page's profile menu.",
+					),
+					check(
+						"hide_support",
+						"Hide Support",
+						1,
+						description="Removes the upstream support-site link from the same two menus.",
+					),
 					F(
 						"hide_search_for_roles",
 						"roles",

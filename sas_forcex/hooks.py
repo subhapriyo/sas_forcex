@@ -281,3 +281,26 @@ extend_bootinfo = ["sas_forcex.theme.extend_bootinfo"]
 update_website_context = ["sas_forcex.theme.update_website_context"]
 # Fresh sites start with the ForceX palette prefilled (existing sites: patch v16_0).
 after_install = "sas_forcex.theme.after_install"
+
+# ---- ForceX branding --------------------------------------------------------------
+# Rules: sas_forcex/forcex_theme/branding.py · icons: sas_forcex/public/images/
+# The ERPNext logo is swapped for ForceX ERP in extend_bootinfo (apps screen, app
+# switcher, dock). Splash and favicon come from this hook; ERPNext sets the same keys,
+# and the last installed app wins. A site's own Website Settings still override both.
+website_context = {
+	"splash_image": "/assets/sas_forcex/images/forcex-erp-logo.svg",
+	"favicon": "/assets/sas_forcex/images/forcex-erp-logo.svg",
+}
+
+# ForceX Theme Settings as an icon on the Desk apps screen, for System Managers only.
+# sequence_id 900 keeps it after the business apps and before Framework (1000).
+add_to_apps_screen = [
+	{
+		"name": "sas_forcex",
+		"logo": "/assets/sas_forcex/images/forcex-theme-settings.svg",
+		"title": "ForceX Theme",
+		"route": "/desk/forcex-theme-settings",
+		"has_permission": "sas_forcex.theme.can_open_theme_settings",
+		"sequence_id": 900,
+	}
+]

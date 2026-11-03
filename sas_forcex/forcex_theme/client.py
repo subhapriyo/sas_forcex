@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+from .branding import desktop_menu_labels_to_hide
 from .colours import LIGHT_TEXT, readable_on
 from .css import build_css
 from .rules import _SAFE_URL, coerce_settings
@@ -40,6 +41,11 @@ def build_config(raw: dict | None, for_login: bool = False, roles=()) -> dict:
 		"font_url": FONTS[s["font_family"]][1],
 		"hide_help": bool(s["hide_help"]),
 		"hide_search": hide_search,
+		# About / Support: the server hides the Help rows (sas_forcex.theme.extend_bootinfo);
+		# the desktop page's avatar menu is built in the browser, so it gets the labels.
+		"hide_about": bool(s["hide_about"]),
+		"hide_support": bool(s["hide_support"]),
+		"hide_desktop_menu": desktop_menu_labels_to_hide(s["hide_about"], s["hide_support"]),
 	}
 	if for_login:
 		config["login"] = _login_options(s, classes, extra)

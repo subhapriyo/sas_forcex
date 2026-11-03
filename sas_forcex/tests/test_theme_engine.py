@@ -215,6 +215,18 @@ class TestBuildConfig(unittest.TestCase):
 		self.assertTrue(te.build_config({"hide_help": 1})["hide_help"])
 		self.assertFalse(te.build_config({"hide_help": 0})["hide_help"])
 
+	def test_about_and_support_are_hidden_by_default(self):
+		self.assertEqual((te.DEFAULTS["hide_about"], te.DEFAULTS["hide_support"]), (1, 1))
+		cfg = te.build_config({})
+		self.assertTrue(cfg["hide_about"] and cfg["hide_support"])
+		# the desktop page's avatar menu is built in the browser, so it gets the labels to drop
+		self.assertEqual(cfg["hide_desktop_menu"], ["About", "Frappe Support"])
+
+	def test_about_and_support_can_be_kept(self):
+		cfg = te.build_config({"hide_about": 0, "hide_support": 0})
+		self.assertFalse(cfg["hide_about"] or cfg["hide_support"])
+		self.assertEqual(cfg["hide_desktop_menu"], [])
+
 	def test_search_is_hidden_only_for_listed_roles(self):
 		raw = {"hide_search_for_roles": [{"role": "Accounts User"}]}
 		hidden = te.build_config(raw, roles=["Employee", "Accounts User"])

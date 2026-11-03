@@ -7,6 +7,9 @@ no Frappe import and is unit-tested on its own. This module only:
   * reads "ForceX Theme Settings" (falling back to defaults if it is missing),
   * hands the result to the Desk (extend_bootinfo) and website pages
     (update_website_context),
+  * applies the ForceX branding to the Desk boot: ForceX ERP logo instead of ERPNext's,
+    About / Support rows hidden from the Help menu (rules in forcex_theme/branding.py),
+  * decides who sees the ForceX Theme icon on the apps screen (can_open_theme_settings),
   * serves the settings page buttons: Clear Cache, Reset, Export, Import (preview + apply),
   * prefills the settings on install / migrate.
 
@@ -42,7 +45,8 @@ def get_client_config(for_login=False, roles=None) -> dict:
 
 # ------------------------------------------------------------------ hooks.py
 def extend_bootinfo(bootinfo):
-	"""hooks.py → extend_bootinfo. Runs after Frappe has built desk_settings."""
+	"""hooks.py → extend_bootinfo. Runs after Frappe has built desk_settings, app_data and
+	navbar_settings, so all three can be adjusted here."""
 	roles = [] if frappe.session.user == "Administrator" else frappe.get_roles()
 	config = get_client_config(roles=roles)
 	bootinfo.forcex_theme = config
@@ -51,6 +55,38 @@ def extend_bootinfo(bootinfo):
 	# (Sidebar.add_standard_items checks desk_settings.search_bar).
 	if config.get("hide_search") and bootinfo.get("desk_settings") is not None:
 		bootinfo.desk_settings["search_bar"] = 0
+
+	_brand_boot(bootinfo, config)
+
+
+def _brand_boot(bootinfo, config):
+	"""ForceX logos and menus. Logged and skipped on error, like the theme itself."""
+	try:
+		# Logos are the brand, not the theme: swapped even when the theme is switched off.
+		# The browser gets the map too, for app data the Desk re-fetches after boot.
+		bootinfo.forcex_brand = {"app_logos": engine.APP_LOGOS}
+		if bootinfo.get("app_data"):
+			bootinfo.app_data = engine.brand_app_data(bootinfo.app_data)
+
+		# About / Support: hide the rows in the boot copy of Navbar Settings only.
+		navbar = bootinfo.get("navbar_settings")
+		if navbar and (config.get("hide_about") or config.get("hide_support")):
+			navbar = navbar.as_dict() if hasattr(navbar, "as_dict") else frappe._dict(navbar)
+			navbar.help_dropdown = [
+				frappe._dict(row)
+				for row in engine.hide_help_items(
+					navbar.get("help_dropdown"), config.get("hide_about"), config.get("hide_support")
+				)
+			]
+			bootinfo.navbar_settings = navbar
+	except Exception:
+		_log.exception("ForceX branding could not be applied to the boot")
+
+
+def can_open_theme_settings() -> bool:
+	"""hooks.py → add_to_apps_screen.has_permission: the ForceX Theme icon is shown to the
+	people who may change the theme (the DocType is System Manager only)."""
+	return "System Manager" in frappe.get_roles()
 
 
 def update_website_context(context):

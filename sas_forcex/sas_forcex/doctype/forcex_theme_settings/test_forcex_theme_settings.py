@@ -122,6 +122,62 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		theme.extend_bootinfo(boot)
 		self.assertEqual(boot.desk_settings.search_bar, 1)
 
+	# ---------------------------------------------------------------- branding
+	def _desk_boot(self):
+		"""A boot built the way Frappe builds it, then passed through our hook."""
+		from frappe.boot import get_app_data
+		from frappe.core.doctype.navbar_settings.navbar_settings import get_navbar_settings
+
+		boot = frappe._dict(
+			desk_settings=frappe._dict(search_bar=1),
+			app_data=get_app_data(),
+			navbar_settings=get_navbar_settings(),
+		)
+		theme.extend_bootinfo(boot)
+		return boot
+
+	def test_desk_shows_the_forcex_erp_logo_instead_of_erpnext(self):
+		if "erpnext" not in frappe.get_installed_apps():
+			self.skipTest("ERPNext is not installed on this site")
+		apps = {a["app_name"]: a for a in self._desk_boot().app_data}
+		self.assertEqual(apps["erpnext"]["app_logo_url"], theme_engine.FORCEX_ERP_LOGO)
+
+	def test_theme_settings_icon_is_on_the_apps_screen_for_admins(self):
+		apps = {a["app_name"]: a for a in self._desk_boot().app_data}
+		self.assertTrue(apps["sas_forcex"]["on_apps_screen"])
+		self.assertEqual(apps["sas_forcex"]["app_logo_url"], theme_engine.THEME_SETTINGS_ICON)
+		self.assertEqual(apps["sas_forcex"]["app_route"], "/desk/forcex-theme-settings")
+
+	def test_theme_settings_icon_is_hidden_from_other_users(self):
+		frappe.set_user("Guest")
+		self.assertFalse(theme.can_open_theme_settings())
+		frappe.set_user("Administrator")
+		self.assertTrue(theme.can_open_theme_settings())
+
+	def test_about_and_support_are_hidden_from_the_help_menu(self):
+		help_rows = self._desk_boot().navbar_settings.help_dropdown
+		hidden = {r.item_label for r in help_rows if r.hidden}
+		self.assertTrue({"About", "Frappe Support"} <= hidden)
+		self.assertNotIn("System Health", hidden)
+		# only the boot copy changes; Navbar Settings itself is not edited
+		saved = frappe.get_all("Navbar Item", filters={"item_label": "About"}, pluck="hidden")
+		self.assertNotIn(1, saved)
+
+	def test_about_and_support_stay_when_switched_off(self):
+		self.doc.hide_about = 0
+		self.doc.hide_support = 0
+		self.doc.save()
+		help_rows = self._desk_boot().navbar_settings.help_dropdown
+		hidden = {r.item_label for r in help_rows if r.hidden}
+		self.assertFalse({"About", "Frappe Support"} & hidden)
+
+	def test_desk_splash_uses_the_forcex_erp_mark(self):
+		from frappe.website.doctype.website_settings.website_settings import get_website_settings
+
+		if frappe.db.get_single_value("Website Settings", "splash_image"):
+			self.skipTest("this site sets its own splash image, which rightly wins")
+		self.assertEqual(get_website_settings().get("splash_image"), theme_engine.FORCEX_ERP_LOGO)
+
 	def test_disabled_theme_adds_nothing_to_the_login_page(self):
 		self.doc.enabled = 0
 		self.doc.save()

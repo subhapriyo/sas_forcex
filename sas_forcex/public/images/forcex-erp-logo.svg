@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none" role="img" aria-labelledby="fx-erp-title">
+	<title id="fx-erp-title">ForceX ERP</title>
+	<!-- Tile: the same 100x100 rounded square as the other app logos, in ForceX navy -->
+	<rect width="100" height="100" rx="28.57" fill="#0F3870"/>
+	<!-- "F" in white: stem plus top and middle arms -->
+	<path d="M22 22h38v10H33v10h22v10H33v26H22V22Z" fill="#FFFFFF"/>
+	<!-- "X", the ForceX mark: a white and an orange bar crossing at the lower right -->
+	<path d="M51.5 50.5 58.5 43.5 85 70 78 77 51.5 50.5Z" fill="#FFFFFF"/>
+	<path d="M78 43.5 85 50.5 58.5 77 51.5 70 78 43.5Z" fill="#F26522"/>
+</svg>

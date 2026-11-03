@@ -1,9 +1,10 @@
-// ForceX Harbour — Desk side of the ForceX theme.
+// ForceX Harbour — Desk side of the ForceX theme and brand.
 //
-// The server (sas_forcex.theme.extend_bootinfo) puts the theme into
-// frappe.boot.forcex_theme:
-//   { enabled, classes[], css, appearance: "auto"|"light"|"dark",
-//     font_url, hide_help, hide_search }
+// The server (sas_forcex.theme.extend_bootinfo) puts two things into the boot:
+//   frappe.boot.forcex_theme  { enabled, classes[], css, appearance: "auto"|"light"|"dark",
+//                               font_url, hide_help, hide_search, hide_desktop_menu[] }
+//   frappe.boot.forcex_brand  { app_logos: { app_name: logo_url } }   (always, even with
+//                               the theme off — the ForceX ERP logo is the brand)
 //
 // frappe.boot is set inline in desk.html before app scripts run, and the Desk
 // renders only after they load, so applying everything here — at load time —
@@ -71,6 +72,40 @@
 		proto.__fxhHelpHidden = true;
 	}
 
+	/** Is this Dropdown trigger the desktop page's avatar ($(".desktop-avatar") or the element)? */
+	function isDesktopAvatar(trigger) {
+		const el = trigger && (trigger.jquery ? trigger[0] : trigger);
+		return !!(el && typeof el.matches === "function" && el.matches(".desktop-avatar"));
+	}
+
+	/**
+	 * Drop rows (e.g. "About", "Frappe Support") from the desktop page's avatar menu.
+	 *
+	 * frappe/desk/page/desktop/desktop.js builds that menu in a local list and hands it
+	 * straight to `new frappe.ui.Dropdown(...)`, so the only place to filter it is that
+	 * constructor. The subclass changes nothing for any other dropdown, and stays a
+	 * frappe.ui.Dropdown for instanceof checks. (Help-menu rows are hidden on the server.)
+	 */
+	function hideDesktopMenuRows(labels) {
+		const ui = frappe.ui;
+		const Base = ui && ui.Dropdown;
+		if (!labels || !labels.length || !Base || Base.__fxhWrapped) return;
+		// Rows arrive already translated, so match the label and its translation.
+		const translate = (s) => (typeof __ === "function" ? __(s) : s);
+		const drop = new Set(labels.flatMap((label) => [label, translate(label)]));
+
+		class ForceXDropdown extends Base {
+			constructor(opts) {
+				if (opts && isDesktopAvatar(opts.trigger) && Array.isArray(opts.options)) {
+					opts = { ...opts, options: opts.options.filter((row) => !drop.has(row && row.label)) };
+				}
+				super(opts);
+			}
+		}
+		ForceXDropdown.__fxhWrapped = true;
+		ui.Dropdown = ForceXDropdown;
+	}
+
 	/** Apply a theme config. Returns true when the theme was applied. */
 	function apply(config) {
 		if (!config || !config.enabled) return false;
@@ -81,6 +116,7 @@
 			applyFont(config.font_url);
 			forceAppearance(config.appearance);
 			if (config.hide_help) hideHelp();
+			hideDesktopMenuRows(config.hide_desktop_menu);
 			return true;
 		} catch (err) {
 			console.warn("ForceX theme could not be applied", err);
@@ -88,8 +124,49 @@
 		}
 	}
 
+	// ------------------------------------------------------------------ brand: app logos
+	// Mirrors sas_forcex/forcex_theme/branding.py → brand_app_data. The server already
+	// swapped the logos in the boot; this repeats it for app data the Desk fetches again
+	// later (workspace.js assigns a fresh frappe.boot.app_data after a workspace edit).
+
+	/** A copy of app_data with ForceX logos; a [light, dark] pair is replaced as a pair. */
+	function brandAppData(appData, logos) {
+		if (!Array.isArray(appData)) return appData;
+		return appData.map((app) => {
+			const logo = app && logos[app.app_name];
+			if (!logo) return app;
+			const current = app.app_logo_url;
+			return { ...app, app_logo_url: Array.isArray(current) ? current.map(() => logo) : logo };
+		});
+	}
+
+	/** Brand frappe.boot.app_data now, and every time something assigns a new one. */
+	function applyBrand(brand) {
+		const logos = brand && brand.app_logos;
+		const boot = window.frappe && frappe.boot;
+		if (!logos || !boot) return false;
+		try {
+			let current = brandAppData(boot.app_data, logos);
+			Object.defineProperty(boot, "app_data", {
+				configurable: true,
+				enumerable: true,
+				get: () => current,
+				set: (value) => {
+					current = brandAppData(value, logos);
+				},
+			});
+			return true;
+		} catch (err) {
+			console.warn("ForceX logos could not be applied", err);
+			return false;
+		}
+	}
+
 	window.forcex = window.forcex || {};
 	window.forcex.theme = { apply };
+	window.forcex.brand = { apply: applyBrand, brandAppData };
 
-	apply(window.frappe && frappe.boot && frappe.boot.forcex_theme);
+	const boot = window.frappe && frappe.boot;
+	applyBrand(boot && boot.forcex_brand);
+	apply(boot && boot.forcex_theme);
 })();

@@ -67,6 +67,8 @@
   "sidebar_active_text_dark",
   "nav_visibility_section",
   "hide_help",
+  "hide_about",
+  "hide_support",
   "hide_search_for_roles",
   "buttons_tab",
   "primary_btn_section",
@@ -525,6 +527,20 @@
    "fieldtype": "Check",
    "label": "Hide Help in the sidebar menu",
    "default": "0"
+  },
+  {
+   "fieldname": "hide_about",
+   "fieldtype": "Check",
+   "label": "Hide About",
+   "default": "1",
+   "description": "Removes 'About' from the Help menu and the desktop page's profile menu."
+  },
+  {
+   "fieldname": "hide_support",
+   "fieldtype": "Check",
+   "label": "Hide Support",
+   "default": "1",
+   "description": "Removes the upstream support-site link from the same two menus."
   },
   {
    "fieldname": "hide_search_for_roles",
@@ -1029,7 +1045,7 @@
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-11-02 18:00:00.000000",
+ "modified": "2026-11-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "SAS ForceX",
  "name": "ForceX Theme Settings",

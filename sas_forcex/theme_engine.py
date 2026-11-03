@@ -6,6 +6,15 @@ package can be reorganised without touching hooks, the controller, the patch, th
 generator script or the tests.
 """
 
+from sas_forcex.forcex_theme.branding import (
+	APP_LOGOS,
+	FORCEX_ERP_LOGO,
+	THEME_SETTINGS_ICON,
+	brand_app_data,
+	desktop_menu_labels_to_hide,
+	hide_help_items,
+	rebrand_url,
+)
 from sas_forcex.forcex_theme.client import build_config, render_head_script
 from sas_forcex.forcex_theme.colours import (
 	DARK_TEXT,

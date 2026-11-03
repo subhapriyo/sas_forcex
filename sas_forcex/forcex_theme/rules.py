@@ -50,7 +50,7 @@ def coerce_settings(raw: dict | None) -> dict:
 		elif f.kind == "check":
 			try:
 				out[name] = 1 if int(value if value not in (None, "") else default) else 0
-			except (TypeError, ValueError):
+			except TypeError, ValueError:
 				out[name] = int(default)
 		elif f.kind == "select":
 			value = _LEGACY_SELECT.get(name, {}).get(value, value)
