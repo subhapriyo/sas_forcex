@@ -21,9 +21,9 @@ for app data the Desk fetches again after boot.
     it still holds an upstream default, so a value a site chose is never overwritten.
     Values that code compares ("Frappe Mail", the "Frappe" login provider, DocType
     names) are deliberately NOT in the list: rewriting them would break features.
-  * Standalone app pages — HRMS serves /hr/... (Roster) and /hrms (mobile app) as
-    self-contained Vite pages that load no Desk or website scripts, so nothing renamed
-    "Frappe HR" there. sas_forcex.theme.after_request adds the rebrand script to the
+  * Standalone app pages — HRMS (/hr/... Roster, /hrms mobile app) and Helpdesk
+    (/helpdesk) serve self-contained Vite pages that load no Desk or website scripts, so
+    nothing renamed "Frappe HR" or swapped their logos there. sas_forcex.theme.after_request adds the rebrand script to the
     <head> of those pages as they leave the server; their own files are not touched.
   * Help menu — Frappe's standard Help rows "About" and "Frappe Support" (Navbar
     Settings). Rows are recognised by what they do, so a renamed or translated label
@@ -73,6 +73,9 @@ INLINE_LOGOS: tuple[dict, ...] = (
 	# HRMS's Vue pages (Roster at /hr, the mobile app at /hrms): FrappeHRLogo.vue, a
 	# 117x117 mint (#A1EEC9) tile.
 	{"selector": 'svg[viewBox="0 0 117 117"]:has(path[fill="#A1EEC9"])', "logo": APP_LOGOS["hrms"]},
+	# Helpdesk's agent app (/helpdesk): HDLogo.vue, a 118x118 purple (#7D42FB) tile, shown in
+	# the sidebar header unless HD Settings has its own brand logo (an <img>, left alone).
+	{"selector": 'svg[viewBox="0 0 118 118"]:has(path[fill="#7D42FB"])', "logo": APP_LOGOS["helpdesk"]},
 )
 
 
@@ -215,8 +218,9 @@ def brand_setting_updates(current: dict) -> list[BrandSetting]:
 
 # ------------------------------------------------------------------------- standalone app pages
 # URL prefixes of upstream single-page apps that bring their own HTML: HRMS's Roster
-# (website_route_rules: /hr/<path> → roster) and its mobile app (/hrms).
-STANDALONE_APP_PREFIXES = ("/hr", "/hrms")
+# (website_route_rules: /hr/<path> → roster), its mobile app (/hrms) and Helpdesk's agent
+# app (/helpdesk/<path> → helpdesk).
+STANDALONE_APP_PREFIXES = ("/hr", "/hrms", "/helpdesk")
 REBRAND_MARKER = "data-forcex-rebrand"  # on our <script> tag, so it is added only once
 _HEAD_END = re.compile(r"</head\s*>", re.IGNORECASE)
 

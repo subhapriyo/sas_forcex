@@ -265,6 +265,12 @@ class TestForceXThemeSettings(IntegrationTestCase):
 		self.assertIn("window.forcex_brand", html)
 		self.assertIn(theme_engine.APP_LOGOS["hrms"], html)
 
+	def test_helpdesk_page_loads_the_rebrand_script(self):
+		self._logos(True)
+		html = self._page("/helpdesk/home")
+		self.assertIn("data-forcex-rebrand", html)
+		self.assertIn(theme_engine.APP_LOGOS["helpdesk"], html)  # in the inline-logo map
+
 	def test_other_responses_are_untouched(self):
 		plain = "<html><head></head></html>"
 		self.assertEqual(self._page("/desk", plain), plain)  # the Desk loads it already

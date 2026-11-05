@@ -103,6 +103,12 @@ class TestAppLogos(unittest.TestCase):
 			br.brand_config(logos=False), {"app_logos": {}, "logo_swaps": {}, "inline_logos": []}
 		)
 
+	def test_the_helpdesk_apps_inline_logo_is_recognised(self):
+		# Helpdesk's Vue app (/helpdesk) draws HDLogo.vue: a 118x118 purple (#7D42FB) tile
+		(hd,) = [i for i in br.INLINE_LOGOS if i["logo"] == br.APP_LOGOS["helpdesk"]]
+		self.assertIn('viewBox="0 0 118 118"', hd["selector"])
+		self.assertIn("#7D42FB", hd["selector"])
+
 	def test_the_hr_apps_inline_logo_is_recognised(self):
 		# HRMS's Vue pages draw their logo as an inline SVG (mint tile #A1EEC9, 117x117)
 		(hr,) = [i for i in br.INLINE_LOGOS if i["logo"] == br.APP_LOGOS["hrms"]]
@@ -296,6 +302,12 @@ class TestStandaloneAppPages(unittest.TestCase):
 	def test_hr_pages_are_recognised(self):
 		for path in ("/hr", "/hr/", "/hr/roster/", "/hr/roster/month", "/hrms", "/hrms/home"):
 			self.assertTrue(br.is_standalone_app_page(path), path)
+
+	def test_helpdesk_pages_are_recognised(self):
+		# Helpdesk's agent app: website_route_rules /helpdesk/<path> -> helpdesk
+		for path in ("/helpdesk", "/helpdesk/home", "/helpdesk/tickets/12"):
+			self.assertTrue(br.is_standalone_app_page(path), path)
+		self.assertFalse(br.is_standalone_app_page("/helpdesk-x"))
 
 	def test_other_pages_are_not(self):
 		for path in ("/desk/hr", "/hrx", "/home", "/login", "/app/hr-settings", "", None):
