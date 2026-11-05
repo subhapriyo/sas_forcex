@@ -10,6 +10,8 @@ from sas_forcex.forcex_theme.branding import (
 	APP_LOGOS,
 	APP_NAME,
 	BRAND_SETTINGS,
+	EXTRA_LOGO_SWAPS,
+	FORCEX_DESK_LOGO,
 	FORCEX_ERP_LOGO,
 	INLINE_LOGOS,
 	LOGO_APPS,

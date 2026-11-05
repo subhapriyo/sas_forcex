@@ -41,6 +41,7 @@ from dataclasses import dataclass
 _IMAGES = "/assets/sas_forcex/images"
 FORCEX_ERP_LOGO = f"{_IMAGES}/forcex-erp-logo.svg"
 THEME_SETTINGS_ICON = f"{_IMAGES}/forcex-theme-settings.svg"
+FORCEX_DESK_LOGO = f"{_IMAGES}/forcex-desk-logo.svg"
 
 # app_name → the ForceX logo shown for it (sent to the browser as-is). Only the upstream
 # apps that have a Desk icon on our sites (sil-dev, fleeto) are listed; any other app,
@@ -64,8 +65,17 @@ UPSTREAM_LOGOS: dict[str, tuple[str, ...]] = {
 	"helpdesk": ("/assets/helpdesk/desk/favicon.svg",),
 }
 
-# upstream logo URL → ForceX logo URL (derived, so the two maps can never disagree)
-LOGO_URL_SWAPS: dict[str, str] = {url: APP_LOGOS[app] for app, urls in UPSTREAM_LOGOS.items() for url in urls}
+# Logos of links that are not apps, so they have no app_name. Helpdesk's Apps menu adds a
+# hard-coded "Desk" entry (helpdesk/desk/src/composables/useApps.ts) with its own image.
+EXTRA_LOGO_SWAPS: dict[str, str] = {
+	"/assets/helpdesk/desk/desk.png": FORCEX_DESK_LOGO,
+}
+
+# upstream logo URL → ForceX logo URL (derived, so the maps can never disagree)
+LOGO_URL_SWAPS: dict[str, str] = {
+	**{url: APP_LOGOS[app] for app, urls in UPSTREAM_LOGOS.items() for url in urls},
+	**EXTRA_LOGO_SWAPS,
+}
 
 # Logos drawn as inline <svg> (no URL to swap). Each is recognised by a CSS selector for
 # its look and painted over with the ForceX logo in the browser (forcex_rebrand.bundle.js).

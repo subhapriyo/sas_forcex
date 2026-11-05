@@ -61,7 +61,8 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
 
 - **ForceX app logos** — the upstream apps used on our sites get a ForceX logo in one
   family (100x100 tile, white glyph, ForceX accent; files in `public/images/`): ERP, HR,
-  India Compliance, Framework and Helpdesk. They show on the apps screen, in the app
+  India Compliance, Framework and Helpdesk, plus ForceX Desk for the "Desk" entry in
+  Helpdesk's Apps menu. They show on the apps screen, in the app
   switcher and on the dock; pages that draw an upstream logo themselves (e.g. the HR
   Roster) get it swapped in the browser. The ERP mark is also the Desk splash and website
   favicon, unless Website Settings sets its own. Other apps, and our own, keep their logos.
@@ -86,7 +87,8 @@ Form buttons: **Clear Cache**, **Export**, **Import**, **Actions → Reset to Fo
   ERPNext's video images and Frappe's help video dialog are hidden.
 
 To brand another app's logo: put the SVG in `public/images/`, add the app to `APP_LOGOS`
-and its upstream logo file(s) to `UPSTREAM_LOGOS` in `forcex_theme/branding.py`. The tests
+and its upstream logo file(s) to `UPSTREAM_LOGOS` in `forcex_theme/branding.py` (a link
+that is not an app, like Helpdesk's "Desk", goes in `EXTRA_LOGO_SWAPS`). The tests
 check every file exists, is valid SVG and has a title.
 
 ### Export / Import

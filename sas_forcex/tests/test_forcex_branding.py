@@ -28,6 +28,14 @@ def asset_path(url: str) -> Path:
 	return PUBLIC / url[len(prefix) :]
 
 
+def _all_logos():
+	"""Every ForceX logo the code points at: per app, plus extra swaps (e.g. Helpdesk's Desk)."""
+	return set(br.APP_LOGOS.values()) | set(getattr(br, "EXTRA_LOGO_SWAPS", {}).values())
+
+
+ALL_LOGOS = _all_logos()
+
+
 def app(name, logo, **extra):
 	return {"app_name": name, "app_title": name.title(), "app_logo_url": logo, **extra}
 
@@ -52,8 +60,19 @@ class TestAppLogos(unittest.TestCase):
 
 	def test_no_unused_logo_files_are_shipped(self):
 		shipped = {p.name for p in (PUBLIC / "images").glob("forcex-*-logo.svg")}
-		used = {Path(url).name for url in br.APP_LOGOS.values()}
+		used = {Path(url).name for url in ALL_LOGOS}
 		self.assertEqual(shipped, used)
+
+	def test_helpdesks_desk_entry_gets_the_forcex_desk_icon(self):
+		# Helpdesk's Apps menu hard-codes a "Desk" entry with its own image (useApps.ts)
+		self.assertEqual(br.rebrand_url("/assets/helpdesk/desk/desk.png"), br.FORCEX_DESK_LOGO)
+		self.assertEqual(
+			br.brand_config(logos=True)["logo_swaps"]["/assets/helpdesk/desk/desk.png"], br.FORCEX_DESK_LOGO
+		)
+
+	def test_extra_swaps_point_only_at_forcex_icons(self):
+		for upstream, logo in br.EXTRA_LOGO_SWAPS.items():
+			self.assertTrue(logo.startswith("/assets/sas_forcex/images/forcex-"), upstream)
 
 	def test_apps_without_a_forcex_logo_keep_their_own(self):
 		# our own apps (e.g. SAS Fortuna) and apps not on our sites (e.g. CRM) are left alone
@@ -343,7 +362,7 @@ class TestIconFiles(unittest.TestCase):
 		self.check_svg(br.FORCEX_ERP_LOGO)
 
 	def test_every_app_logo_exists_and_is_valid(self):
-		for url in set(br.APP_LOGOS.values()):
+		for url in ALL_LOGOS:
 			with self.subTest(url=url):
 				self.check_svg(url)
 
@@ -351,7 +370,7 @@ class TestIconFiles(unittest.TestCase):
 		# Primary: ForceX navy and orange (as in the ERP mark). Secondary, for accents or one
 		# tile: deep navy and sky. White for the glyphs. Nothing else.
 		navy, orange, deep, sky, white = "#0F3870", "#F26522", "#0B1C33", "#3B82C4", "#FFFFFF"
-		for url in set(br.APP_LOGOS.values()):
+		for url in ALL_LOGOS:
 			with self.subTest(url=url):
 				root = ET.parse(asset_path(url)).getroot()
 				colours = {
@@ -369,7 +388,7 @@ class TestIconFiles(unittest.TestCase):
 		self.check_svg(br.THEME_SETTINGS_ICON)
 
 	def test_icons_carry_an_accessible_title(self):
-		for url in {br.THEME_SETTINGS_ICON, *br.APP_LOGOS.values()}:
+		for url in {br.THEME_SETTINGS_ICON, *ALL_LOGOS}:
 			root = ET.parse(asset_path(url)).getroot()
 			titles = [el.text for el in root.iter() if el.tag.endswith("title")]
 			self.assertTrue(titles and titles[0].strip(), f"{url} needs a <title>")
